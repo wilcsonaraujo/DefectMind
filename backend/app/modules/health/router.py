@@ -1,8 +1,8 @@
 import os
 import datetime
 from fastapi import APIRouter
-
-from backend.app.modules.auth.schemas import HealthService
+from backend.app.core.config import settings
+from backend.app.modules.health.schemas import HealthService
 
 router = APIRouter()
 
@@ -11,8 +11,8 @@ router = APIRouter()
 async def health_get_response():
     return {
         "status": "healthy",
-        "service": "DefectMind",
-        "version": "1.0.0",
-        "environment": "dev",
+        "service": settings.APP_NAME,
+        "version": settings.APP_VERSION,
+        "environment": settings.ENVIRONMENT,
         "timestamp": datetime.datetime.now(datetime.timezone.utc),
     }
