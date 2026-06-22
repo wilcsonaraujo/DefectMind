@@ -1,4 +1,4 @@
-# Python
+# ─── Python ───────────────────────────────────────────────
 __pycache__/
 *.py[cod]
 *$py.class
@@ -8,8 +8,6 @@ env/
 venv/
 .venv/
 ENV/
-dist/
-build/
 *.egg-info/
 *.egg
 .pytest_cache/
@@ -21,41 +19,45 @@ htmlcov/
 dmypy.json
 .ipynb_checkpoints
 
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-.DS_Store
+# ─── Node.js / Frontend ───────────────────────────────────
+node_modules/
+frontend/.output/
+frontend/dist/
+frontend/.vinxi/
+frontend/src/routeTree.gen.ts
 
-# Database
-*.db
-*.sqlite
-*.sqlite3
+# ─── Build genérico ───────────────────────────────────────
+dist/
+build/
 
-# Environment
+# ─── Ambiente e segredos ──────────────────────────────────
 .env
 .env.local
 .env.*.local
 
-# Logs
+# ─── IDE e editores ───────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ─── Sistema operacional ──────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ─── Logs ─────────────────────────────────────────────────
 *.log
 logs/
 
-# Uploads
+# ─── Banco de dados local ─────────────────────────────────
+*.db
+*.sqlite
+*.sqlite3
+
+# ─── Uploads e arquivos estáticos gerados ─────────────────
 media/
 uploads/
 staticfiles/
 
-# Documents
+# ─── Documentos locais ────────────────────────────────────
 /Documentos
-
-node_modules/
-.env
-dist/
-build/
-*.log
-.DS_Store
-.idea/
-.vscode/
-.output/
