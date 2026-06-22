@@ -58,3 +58,4 @@ build/
 .DS_Store
 .idea/
 .vscode/
+.output/

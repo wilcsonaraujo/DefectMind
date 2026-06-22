@@ -11,14 +11,15 @@ COPY frontend/ .
 RUN npm run build
 
 # Runtime
-FROM nginx:alpine
+FROM node:20-slim
 
-#copy the built files from the builder stage
-COPY --from=builder /app/dist /usr/share/nginx/html
-COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf
+WORKDIR /app
+
+#copy only the output from the builder and the dependences
+COPY --from=builder /app/.output ./.output
 
 # Expose the port the app runs on
-EXPOSE 80
+EXPOSE 3000
 
 # Command to run the application
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["node", ".output/server/index.mjs"]
