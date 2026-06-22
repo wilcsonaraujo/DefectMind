@@ -1,0 +1,21 @@
+services:
+
+  backend:
+    build:
+      context: .                        # root
+      dockerfile: backend/Dockerfile    # Dockerfile path
+    ports:
+      - "8000:8000"                     # host:container
+    env_file:
+      - .env                            # environment variables file
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .                        # root
+      dockerfile: frontend/Dockerfile   # Dockerfile path
+    ports:
+      - "3000:3000"                     # host:container
+    depends_on:
+      - backend                         
+    restart: unless-stopped
