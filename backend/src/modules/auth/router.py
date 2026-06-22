@@ -1,8 +1,8 @@
 import os
 import datetime
 from fastapi import APIRouter
-from backend.app.core.config import settings
-from backend.app.modules.auth.schemas import HealthService
+from backend.src.core.config import settings
+from backend.src.modules.auth.schemas import HealthService
 
 router = APIRouter()
 
