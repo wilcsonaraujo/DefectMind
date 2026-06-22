@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from backend.app.modules.auth import router
+from backend.src.modules.auth import router
 
 app = FastAPI(title="DefectMind API")
 
