@@ -9,6 +9,7 @@ from backend.src.models.user import User
 from backend.src.modules.auth.schemas import (
     HealthService,
     TokenResponse,
+    UserLoginRequest,
     UserRegisterRequest,
     UserRegisterResponse,
 )
@@ -58,7 +59,7 @@ def user_register(payload: UserRegisterRequest, db: Session = Depends(get_db)):
 
 
 @router.post("/auth/login", summary="User Login", response_model=TokenResponse)
-def user_login(payload: UserRegisterRequest, db: Session = Depends(get_db)):
+def user_login(payload: UserLoginRequest, db: Session = Depends(get_db)):
 
     user = db.query(User).filter(User.email == payload.email).first()
 
