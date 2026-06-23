@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.src.modules.auth import router
+from backend.src.modules.users.router import router as users_router
 
 app = FastAPI(title="DefectMind API")
 
@@ -15,8 +16,4 @@ app.add_middleware(
 )
 
 app.include_router(router)
-
-
-@app.get("/")
-async def root():
-    return {"message": "DefectMind API is running"}
+app.include_router(users_router, prefix="/api/v1", tags=["users"])
