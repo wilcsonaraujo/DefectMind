@@ -8,6 +8,8 @@ services:
       - "8000:8000"                     # host:container
     env_file:
       - .env                            # environment variables file
+    depends_on:
+      - neo4j
     restart: unless-stopped
 
   frontend:
@@ -17,5 +19,20 @@ services:
     ports:
       - "3000:3000"                     # host:container
     depends_on:
-      - backend                         
+      - backend
+      - neo4j
     restart: unless-stopped
+
+  neo4j:
+    image: neo4j:5-community
+    ports:
+      - "7474:7474"   # Browser web
+      - "7687:7687"   # Bolt (driver Python)
+    environment:
+      - NEO4J_AUTH=neo4j/defectmind_neo4j_pass
+    volumes:
+      - neo4j_data:/data
+    restart: unless-stopped
+
+volumes:
+  neo4j_data:
