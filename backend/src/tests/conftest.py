@@ -1,6 +1,15 @@
+import os
+
+# MUST be set before any project imports — config.py reads these at module load time
+os.environ.setdefault("DATABASE_URL", "sqlite:///:memory:")
+os.environ.setdefault("ENVIRONMENT", "test")
+os.environ.setdefault("APP_NAME", "DefectMind")
+os.environ.setdefault("APP_VERSION", "0.1.0")
+os.environ.setdefault("JWT_SECRET_KEY", "test-secret-key-insecure")
+
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
+from sqlalchemy import StaticPool, create_engine
 from sqlalchemy.orm import sessionmaker
 from backend.src.core.database import Base, get_db
 from backend.src.main import app
@@ -8,12 +17,12 @@ from backend.src.main import app
 # Import models to ensure they are registered with SQLAlchemy
 import backend.src.models
 
-# SQLite in-memory database URL for testing
 TEST_DATABASE_URL = "sqlite:///:memory:"
 
 engine = create_engine(
     TEST_DATABASE_URL,
-    connect_args={"check_same_thread": False}  
+    connect_args={"check_same_thread": False},
+    poolclass=StaticPool,
 )
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
