@@ -12,7 +12,6 @@ jobs:
   test:
     name: Lint & Tests
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -34,9 +33,23 @@ jobs:
         env:
           ENVIRONMENT: test
           APP_NAME: DefectMind
-          APP_VERSION: 0.1.0
+          APP_VERSION: "0.1.0"
           DATABASE_URL: 'sqlite:///:memory:'
           JWT_SECRET_KEY: test-secret-key-insecure
           JWT_ALGORITHM: HS256
           JWT_ACCESS_TOKEN_EXPIRE_MINUTES: 120
         run: pytest backend/src/tests/ -v
+
+  docker-build:
+    name: Docker Build
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build backend image
+        run: docker build -f backend/Dockerfile -t defectmind-backend:ci .
+
+      - name: Build frontend image
+        run: docker build -f frontend/Dockerfile -t defectmind-frontend:ci .
