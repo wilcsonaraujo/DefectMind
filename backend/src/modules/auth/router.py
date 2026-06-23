@@ -4,7 +4,12 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 from backend.src.core.config import settings
 from backend.src.core.database import get_db
-from backend.src.core.security import create_access_token, hash_password, verify_password
+from backend.src.core.dependencies import get_current_user
+from backend.src.core.security import (
+    create_access_token,
+    hash_password,
+    verify_password,
+)
 from backend.src.models.user import User
 from backend.src.modules.auth.schemas import (
     HealthService,
@@ -76,3 +81,8 @@ def user_login(payload: UserLoginRequest, db: Session = Depends(get_db)):
         "token_type": "bearer",
         "expires_in": settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60,
     }
+
+
+@router.get("/auth/me", response_model=UserRegisterResponse, summary="Get Current User")
+def get_me(current_user: User = Depends(get_current_user)):
+    return current_user
