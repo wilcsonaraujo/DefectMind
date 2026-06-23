@@ -7,4 +7,5 @@ class HealthService(BaseModel):
     service: str
     version: str
     environment: str
+    database: str
     timestamp: datetime
