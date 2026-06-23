@@ -35,7 +35,7 @@ jobs:
           ENVIRONMENT: test
           APP_NAME: DefectMind
           APP_VERSION: 0.1.0
-          DATABASE_URL: sqlite:///:memory:
+          DATABASE_URL: 'sqlite:///:memory:'
           JWT_SECRET_KEY: test-secret-key-insecure
           JWT_ALGORITHM: HS256
           JWT_ACCESS_TOKEN_EXPIRE_MINUTES: 120
