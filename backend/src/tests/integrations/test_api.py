@@ -1,7 +1,3 @@
-import pytest
-from fastapi.testclient import TestClient
-
-
 class TestHealth:
     def test_health_returns_200(self, client):
         response = client.get("/health")
