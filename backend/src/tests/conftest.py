@@ -15,7 +15,7 @@ from backend.src.core.database import Base, get_db
 from backend.src.main import app
 
 # Import models to ensure they are registered with SQLAlchemy
-import backend.src.models
+import backend.src.models  # noqa: F401
 
 TEST_DATABASE_URL = "sqlite:///:memory:"
 
@@ -25,6 +25,7 @@ engine = create_engine(
     poolclass=StaticPool,
 )
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
 
 @pytest.fixture(scope="function")
 def db():
@@ -37,9 +38,11 @@ def db():
         session.close()
         Base.metadata.drop_all(bind=engine)
 
+
 @pytest.fixture(scope="function")
 def client(db):
     """Test client that uses the test database session."""
+
     def override_get_db():
         try:
             yield db

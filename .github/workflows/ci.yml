@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    name: Lint & Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run linting (ruff)
+        run: |
+          pip install ruff
+          ruff check backend/src/
+
+      - name: Run tests
+        env:
+          ENVIRONMENT: test
+          APP_NAME: DefectMind
+          APP_VERSION: 0.1.0
+          DATABASE_URL: 'sqlite:///:memory:'
+          JWT_SECRET_KEY: test-secret-key-insecure
+          JWT_ALGORITHM: HS256
+          JWT_ACCESS_TOKEN_EXPIRE_MINUTES: 120
+        run: pytest backend/src/tests/ -v

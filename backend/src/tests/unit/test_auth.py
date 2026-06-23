@@ -1,5 +1,10 @@
-import pytest
-from backend.src.core.security import hash_password, verify_password, create_access_token, decode_access_token
+from backend.src.core.security import (
+    hash_password,
+    verify_password,
+    create_access_token,
+    decode_access_token,
+)
+
 
 class TestHashPassword:
     def test_hash_returns_bcrypt_format(self):
@@ -11,6 +16,7 @@ class TestHashPassword:
         h1 = hash_password("MinhaSenh@123")
         h2 = hash_password("MinhaSenh@123")
         assert h1 != h2
+
 
 class TestVerifyPassword:
     def test_correct_password_returns_true(self):
@@ -24,6 +30,7 @@ class TestVerifyPassword:
     def test_invalid_hash_returns_false(self):
         """Invalid hash should not raise an exception — it should return False."""
         assert verify_password("any", "hash_invalido") is False
+
 
 class TestJWT:
     def test_create_and_decode_token(self):

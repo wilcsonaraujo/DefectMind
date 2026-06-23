@@ -10,7 +10,7 @@ router = APIRouter()
 
 @router.get("/users", response_model=list[UserResponse])
 def list_users(db: Session = Depends(get_db)):
-    users = db.query(User).filter(User.is_active == True).all()
+    users = db.query(User).filter(User.is_active).all()
     return users
 
 @router.get("/users/{user_id}", response_model=UserResponse)
