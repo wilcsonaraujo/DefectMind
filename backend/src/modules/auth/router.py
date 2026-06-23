@@ -37,7 +37,7 @@ def user_register(payload: UserRegisterRequest, db: Session = Depends(get_db)):
         email=payload.email,
         hashed_password=hashed,
         full_name=payload.full_name,
-        role="viewer",
+        role=payload.role,           # Can be 'admin', 'analyst', or 'viewer'
     )
     
     db.add(new_user)

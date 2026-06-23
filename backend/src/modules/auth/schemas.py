@@ -16,6 +16,7 @@ class UserRegisterRequest(BaseModel):
     full_name: Optional[str] = None
     email: EmailStr
     password: str
+    role: Optional[str] = "viewer"  # Default role is 'viewer'
 
 class UserRegisterResponse(BaseModel):
     id: uuid.UUID
