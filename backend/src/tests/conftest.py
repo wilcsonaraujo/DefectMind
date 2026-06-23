@@ -5,6 +5,9 @@ from sqlalchemy.orm import sessionmaker
 from backend.src.core.database import Base, get_db
 from backend.src.main import app
 
+# Import models to ensure they are registered with SQLAlchemy
+import backend.src.models
+
 # SQLite in-memory database URL for testing
 TEST_DATABASE_URL = "sqlite:///:memory:"
 
