@@ -1,3 +1,6 @@
+from datetime import datetime, timezone
+import uuid
+
 from fastapi import APIRouter, Depends, HTTPException
 from backend.src.core.dependencies import get_current_user
 from backend.src.core.neo4j_db import get_neo4j_session
@@ -58,9 +61,17 @@ def create_story(
     neo4j=Depends(get_neo4j_session),
     current_user: User = Depends(get_current_user),
 ):
+    new_id = str(uuid.uuid4())
+    created_at = datetime.now(timezone.utc).isoformat()
 
-    query = "CREATE (s:Story {title: $title, content: $content, created_at: $created_at}) RETURN s"
-    result = neo4j.run(query, title=story.title, content=story.content)
+    query = "CREATE (s:Story {id: $id, title: $title, content: $content, created_at: $created_at}) RETURN s"
+    result = neo4j.run(
+        query,
+        id=new_id,
+        title=story.title,
+        content=story.content,
+        created_at=created_at,
+    )
     created_story = [dict(record["s"]) for record in result]
 
     return created_story[0] if created_story else None
@@ -95,10 +106,15 @@ def create_requirement(
     neo4j=Depends(get_neo4j_session),
     current_user: User = Depends(get_current_user),
 ):
-
-    query = "CREATE (r:Requirement {title: $title, description: $description, created_at: $created_at}) RETURN r"
+    new_id = str(uuid.uuid4())
+    created_at = datetime.now(timezone.utc).isoformat()
+    query = "CREATE (r:Requirement {id: $id, title: $title, description: $description, created_at: $created_at}) RETURN r"
     result = neo4j.run(
-        query, title=requirement.title, description=requirement.description
+        query,
+        id=new_id,
+        title=requirement.title,
+        description=requirement.description,
+        created_at=created_at,
     )
     created_requirement = [dict(record["r"]) for record in result]
 
