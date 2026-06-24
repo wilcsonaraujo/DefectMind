@@ -23,7 +23,7 @@ def get_stories(
     result = neo4j.run(query)
     stories = [dict(record["s"]) for record in result]
 
-    if result is None:
+    if not stories:
         raise HTTPException(status_code=404, detail="No stories found.")
 
     return stories
@@ -42,12 +42,12 @@ def get_stories_id(
 
     query = "MATCH (s:Story {id: $story_id}) RETURN s"
     result = neo4j.run(query, story_id=story_id)
+    stories = [dict(record["s"]) for record in result]
 
-    if result is None:
+    if not stories:
         raise HTTPException(status_code=404, detail="Story ID not found.")
 
-    stories = [dict(record["s"]) for record in result]
-    return stories
+    return stories[0]
 
 
 @router.post(
@@ -59,7 +59,7 @@ def create_story(
     current_user: User = Depends(get_current_user),
 ):
 
-    query = "CREATE (s:Story {title: $title, content: $content}) RETURN s"
+    query = "CREATE (s:Story {title: $title, content: $content, created_at: $created_at}) RETURN s"
     result = neo4j.run(query, title=story.title, content=story.content)
     created_story = [dict(record["s"]) for record in result]
 
@@ -79,7 +79,7 @@ def get_requirements(
     result = neo4j.run(query)
     requirements = [dict(record["r"]) for record in result]
 
-    if result is None:
+    if not requirements:
         raise HTTPException(status_code=404, detail="No requirements found.")
 
     return requirements
@@ -96,7 +96,7 @@ def create_requirement(
     current_user: User = Depends(get_current_user),
 ):
 
-    query = "CREATE (r:Requirement {title: $title, description: $description}) RETURN r"
+    query = "CREATE (r:Requirement {title: $title, description: $description, created_at: $created_at}) RETURN r"
     result = neo4j.run(
         query, title=requirement.title, description=requirement.description
     )
