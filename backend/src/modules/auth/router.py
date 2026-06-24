@@ -31,6 +31,7 @@ async def health_get_response(db: Session = Depends(get_db)):
         "version": settings.APP_VERSION,
         "environment": settings.ENVIRONMENT,
         "database": "connected",
+        "neo4j": "connected",
         "timestamp": datetime.datetime.now(datetime.timezone.utc),
     }
 
