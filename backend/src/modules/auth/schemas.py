@@ -10,6 +10,7 @@ class HealthService(BaseModel):
     version: str
     environment: str
     database: str
+    neo4j: str
     timestamp: datetime
 
 class UserRegisterRequest(BaseModel):

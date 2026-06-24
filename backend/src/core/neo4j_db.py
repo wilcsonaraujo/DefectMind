@@ -1,24 +1,26 @@
 from neo4j import GraphDatabase
-from core.config import settings
+from backend.src.core.config import settings
 
-URL = settings.NEO4J_URI
-AUTH = settings.NEO4J_USER, settings.NEO4J_PASSWORD
-
+_driver = None
 
 # Driver criation and executing a test consulting the database
-def get_neo4j_driver():
-    try:
-        driver = GraphDatabase.driver(URL, auth=AUTH)
-        driver.verify_connectivity()  # Test the connection
-        return driver
-    except Exception as e:
-        print(f"Error connecting to Neo4j driver: {e}")
-        raise
+def init_neo4j_driver():
+    global _driver
+    _driver = GraphDatabase.driver(
+        settings.NEO4J_URI,
+        auth=(settings.NEO4J_USER, settings.NEO4J_PASSWORD),
+    )
+    _driver.verify_connectivity()
+
+def close_neo4j_driver():
+    global _driver
+    if _driver:
+        _driver.close()
+        _driver = None
 
 
 def get_neo4j_session():
-    driver = get_neo4j_driver()
-    session = driver.session()
+    session = _driver.session()
     try:
         yield session
     finally:

@@ -1,10 +1,19 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
+from backend.src.core.neo4j_db import close_neo4j_driver, init_neo4j_driver
 from backend.src.modules.auth.router import router as auth_router
 from backend.src.modules.users.router import router as users_router
 
-app = FastAPI(title="DefectMind API")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    init_neo4j_driver()
+    yield
+    # Shutdown
+    close_neo4j_driver()
+
+app = FastAPI(title="DefectMind API", lifespan=lifespan)
 
 # Configuração CORS
 app.add_middleware(
