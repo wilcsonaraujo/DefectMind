@@ -26,7 +26,11 @@ router = APIRouter()
 @router.get("/health", response_model=HealthService, summary="Health Check")
 async def health_get_response(db: Session = Depends(get_db), neo4j=Depends(get_neo4j_session)):
     db.execute(text("SELECT 1"))
-    neo4j.run("RETURN 1")
+    
+    neo4j_status = "disconnected"
+    if neo4j is not None:
+        neo4j.run("RETURN 1")
+        neo4j_status = "connected"
     
     return {
         "status": "healthy",
@@ -34,7 +38,7 @@ async def health_get_response(db: Session = Depends(get_db), neo4j=Depends(get_n
         "version": settings.APP_VERSION,
         "environment": settings.ENVIRONMENT,
         "database": "connected",
-        "neo4j": "connected",
+        "neo4j": neo4j_status,
         "timestamp": datetime.datetime.now(datetime.timezone.utc),
     }
 
