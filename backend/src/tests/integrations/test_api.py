@@ -8,6 +8,7 @@ class TestHealth:
         data = response.json()
         assert data["status"] == "healthy"
         assert data["database"] == "connected"
+        assert data["neo4j"] in ("connected", "disconnected")
         assert "version" in data
 
 

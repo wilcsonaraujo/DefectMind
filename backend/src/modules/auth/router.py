@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from backend.src.core.config import settings
 from backend.src.core.database import get_db
 from backend.src.core.dependencies import get_current_user
+from backend.src.core.neo4j_db import get_neo4j_session
 from backend.src.core.security import (
     create_access_token,
     hash_password,
@@ -23,14 +24,21 @@ router = APIRouter()
 
 
 @router.get("/health", response_model=HealthService, summary="Health Check")
-async def health_get_response(db: Session = Depends(get_db)):
+async def health_get_response(db: Session = Depends(get_db), neo4j=Depends(get_neo4j_session)):
     db.execute(text("SELECT 1"))
+    
+    neo4j_status = "disconnected"
+    if neo4j is not None:
+        neo4j.run("RETURN 1")
+        neo4j_status = "connected"
+    
     return {
         "status": "healthy",
         "service": settings.APP_NAME,
         "version": settings.APP_VERSION,
         "environment": settings.ENVIRONMENT,
         "database": "connected",
+        "neo4j": neo4j_status,
         "timestamp": datetime.datetime.now(datetime.timezone.utc),
     }
 
