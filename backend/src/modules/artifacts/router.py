@@ -27,7 +27,7 @@ def get_stories(
     stories = [dict(record["s"]) for record in result]
 
     if not stories:
-        raise HTTPException(status_code=404, detail="No stories found.")
+        return []
 
     return stories
 
@@ -54,7 +54,7 @@ def get_stories_id(
 
 
 @router.post(
-    "/stories", response_model=StoryRequest, summary="Create a new story in Neo4j"
+    "/stories", response_model=StoryResponse, summary="Create a new story in Neo4j"
 )
 def create_story(
     story: StoryRequest,
@@ -91,14 +91,14 @@ def get_requirements(
     requirements = [dict(record["r"]) for record in result]
 
     if not requirements:
-        raise HTTPException(status_code=404, detail="No requirements found.")
+        return []
 
     return requirements
 
 
 @router.post(
     "/requirements",
-    response_model=RequirementRequest,
+    response_model=RequirementResponse,
     summary="Create a new requirement in Neo4j",
 )
 def create_requirement(
