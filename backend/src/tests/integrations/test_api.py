@@ -133,3 +133,55 @@ class TestAuthMe:
         response = client.get("/auth/me", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code == 200
         assert response.json()["email"] == "me@defectmind.com"
+
+
+class TestArtifacts:
+    def _get_token(self, client) -> str:
+        client.post(
+            "/auth/register",
+            json={
+                "email": "artifacts@defectmind.com",
+                "password": "MinhaSenh@123",
+                "role": "analyst",
+            },
+        )
+        response = client.post(
+            "/auth/login",
+            json={
+                "email": "artifacts@defectmind.com",
+                "password": "MinhaSenh@123",
+            },
+        )
+        return response.json()["access_token"]
+
+    def test_get_stories_returns_200(self, client):
+        token = self._get_token(client)
+        response = client.get(
+            "/api/v1/stories",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        assert response.status_code == 200
+
+    def test_get_stories_without_token_returns_401(self, client):
+        response = client.get("/api/v1/stories")
+        assert response.status_code == 401
+
+    def test_get_story_by_id_not_found_returns_404(self, client):
+        token = self._get_token(client)
+        response = client.get(
+            "/api/v1/stories/id-inexistente",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        assert response.status_code == 404
+
+    def test_get_requirements_returns_200(self, client):
+        token = self._get_token(client)
+        response = client.get(
+            "/api/v1/requirements",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        assert response.status_code == 200
+
+    def test_get_requirements_without_token_returns_401(self, client):
+        response = client.get("/api/v1/requirements")
+        assert response.status_code == 401
