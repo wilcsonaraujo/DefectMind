@@ -12,6 +12,7 @@ from backend.src.modules.artifacts.schemas import (
     IncidentResponse,
     PostMortemRequest,
     PostMortemResponse,
+    RelationshipRequest,
     RequirementRequest,
     RequirementResponse,
     StoryRequest,
@@ -30,7 +31,7 @@ def get_stories(
     neo4j=Depends(get_neo4j_session), current_user: User = Depends(get_current_user)
 ):
 
-    query = "MATCH (s:Story) RETURN s"
+    query = """MATCH (s:Story) RETURN s"""
     result = neo4j.run(query)
     stories = [dict(record["s"]) for record in result]
 
@@ -51,7 +52,7 @@ def get_stories_id(
     current_user: User = Depends(get_current_user),
 ):
 
-    query = "MATCH (s:Story {id: $story_id}) RETURN s"
+    query = """MATCH (s:Story {id: $story_id}) RETURN s"""
     result = neo4j.run(query, story_id=story_id)
     stories = [dict(record["s"]) for record in result]
 
@@ -72,7 +73,7 @@ def create_story(
     new_id = str(uuid.uuid4())
     created_at = datetime.now(timezone.utc).isoformat()
 
-    query = "CREATE (s:Story {id: $id, title: $title, description: $description, created_at: $created_at}) RETURN s"
+    query = """CREATE (s:Story {id: $id, title: $title, description: $description, created_at: $created_at}) RETURN s"""
     result = neo4j.run(
         query,
         id=new_id,
@@ -94,7 +95,7 @@ def get_requirements(
     neo4j=Depends(get_neo4j_session), current_user: User = Depends(get_current_user)
 ):
 
-    query = "MATCH (r:Requirement) RETURN r"
+    query = """MATCH (r:Requirement) RETURN r"""
     result = neo4j.run(query)
     requirements = [dict(record["r"]) for record in result]
 
@@ -116,7 +117,7 @@ def create_requirement(
 ):
     new_id = str(uuid.uuid4())
     created_at = datetime.now(timezone.utc).isoformat()
-    query = "CREATE (r:Requirement {id: $id, title: $title, description: $description, created_at: $created_at}) RETURN r"
+    query = """CREATE (r:Requirement {id: $id, title: $title, description: $description, created_at: $created_at}) RETURN r"""
     result = neo4j.run(
         query,
         id=new_id,
@@ -128,6 +129,7 @@ def create_requirement(
 
     return created_requirement[0] if created_requirement else None
 
+
 @router.get(
     "/testcases",
     response_model=list[TestCaseResponse],
@@ -136,7 +138,7 @@ def create_requirement(
 def get_test_cases(
     neo4j=Depends(get_neo4j_session), current_user: User = Depends(get_current_user)
 ):
-    query = "MATCH (t:TestCase) RETURN t"
+    query = """MATCH (t:TestCase) RETURN t"""
     result = neo4j.run(query)
     test_cases = [dict(record["t"]) for record in result]
 
@@ -158,7 +160,7 @@ def create_test_case(
 ):
     new_id = str(uuid.uuid4())
     created_at = datetime.now(timezone.utc).isoformat()
-    query = "CREATE (t:TestCase {id: $id, title: $title, steps: $steps, expected_result: $expected_result, created_at: $created_at}) RETURN t"
+    query = """CREATE (t:TestCase {id: $id, title: $title, steps: $steps, expected_result: $expected_result, created_at: $created_at}) RETURN t"""
     result = neo4j.run(
         query,
         id=new_id,
@@ -180,7 +182,7 @@ def create_test_case(
 def get_bug_reports(
     neo4j=Depends(get_neo4j_session), current_user: User = Depends(get_current_user)
 ):
-    query = "MATCH (b:BugReport) RETURN b"
+    query = """MATCH (b:BugReport) RETURN b"""
     result = neo4j.run(query)
     bug_reports = [dict(record["b"]) for record in result]
 
@@ -202,7 +204,7 @@ def create_bug_report(
 ):
     new_id = str(uuid.uuid4())
     created_at = datetime.now(timezone.utc).isoformat()
-    query = "CREATE (b:BugReport {id: $id, title: $title, description: $description, severity: $severity, status: $status, created_at: $created_at}) RETURN b"
+    query = """CREATE (b:BugReport {id: $id, title: $title, description: $description, severity: $severity, status: $status, created_at: $created_at}) RETURN b"""
     result = neo4j.run(
         query,
         id=new_id,
@@ -225,7 +227,7 @@ def create_bug_report(
 def get_incidents(
     neo4j=Depends(get_neo4j_session), current_user: User = Depends(get_current_user)
 ):
-    query = "MATCH (i:Incident) RETURN i"
+    query = """MATCH (i:Incident) RETURN i"""
     result = neo4j.run(query)
     incidents = [dict(record["i"]) for record in result]
 
@@ -247,7 +249,7 @@ def create_incident(
 ):
     new_id = str(uuid.uuid4())
     created_at = datetime.now(timezone.utc).isoformat()
-    query = "CREATE (i:Incident {id: $id, title: $title, description: $description, impact: $impact, created_at: $created_at}) RETURN i"
+    query = """CREATE (i:Incident {id: $id, title: $title, description: $description, impact: $impact, created_at: $created_at}) RETURN i"""
     result = neo4j.run(
         query,
         id=new_id,
@@ -269,7 +271,7 @@ def create_incident(
 def get_postmortems(
     neo4j=Depends(get_neo4j_session), current_user: User = Depends(get_current_user)
 ):
-    query = "MATCH (p:PostMortem) RETURN p"
+    query = """MATCH (p:PostMortem) RETURN p"""
     result = neo4j.run(query)
     postmortems = [dict(record["p"]) for record in result]
 
@@ -291,7 +293,7 @@ def create_postmortem(
 ):
     new_id = str(uuid.uuid4())
     created_at = datetime.now(timezone.utc).isoformat()
-    query = "CREATE (p:PostMortem {id: $id, root_cause: $root_cause, resolution: $resolution, lessons_learned: $lessons_learned, created_at: $created_at}) RETURN p"
+    query = """CREATE (p:PostMortem {id: $id, root_cause: $root_cause, resolution: $resolution, lessons_learned: $lessons_learned, created_at: $created_at}) RETURN p"""
     result = neo4j.run(
         query,
         id=new_id,
@@ -303,3 +305,66 @@ def create_postmortem(
     created_postmortem = [dict(record["p"]) for record in result]
 
     return created_postmortem[0] if created_postmortem else None
+
+
+@router.post(
+    "/stories/{story_id}/requirements/{req_id}", summary="Link a requirement to a story"
+)
+def link_requirement_to_story(
+    story_id: str,
+    req_id: str,
+    relationship: RelationshipRequest,
+    neo4j=Depends(get_neo4j_session),
+    current_user: User = Depends(get_current_user),
+):
+    query = """
+    MATCH (s:Story {id: $story_id}), (r:Requirement {id: $req_id})
+    CREATE (s)-[rel:HAS_REQUIREMENT {relationship_type: $relationship_type}]->(r)
+    RETURN s, r, rel
+    """
+    result = neo4j.run(
+        query,
+        story_id=story_id,
+        req_id=req_id,
+        relationship_type=relationship.relationship_type,
+    )
+    records = [dict(record) for record in result]
+
+    if not records:
+        raise HTTPException(
+            status_code=404, detail="Story or Requirement ID not found."
+        )
+
+    return {"message": "Requirement linked to Story successfully."}
+
+
+@router.post(
+    "/requirements/{req_id}/testcases/{tc_id}",
+    summary="Link a test case to a requirement",
+)
+def link_testcase_to_requirement(
+    req_id: str,
+    tc_id: str,
+    relationship: RelationshipRequest,
+    neo4j=Depends(get_neo4j_session),
+    current_user: User = Depends(get_current_user),
+):
+    query = """
+    MATCH (r:Requirement {id: $req_id}), (t:TestCase {id: $tc_id})
+    CREATE (r)-[rel:COVERED_BY {relationship_type: $relationship_type}]->(t)
+    RETURN r, t, rel
+    """
+    result = neo4j.run(
+        query,
+        req_id=req_id,
+        tc_id=tc_id,
+        relationship_type=relationship.relationship_type,
+    )
+    records = [dict(record) for record in result]
+
+    if not records:
+        raise HTTPException(
+            status_code=404, detail="Requirement or Test Case ID not found."
+        )
+
+    return {"message": "Test Case linked to Requirement successfully."}
