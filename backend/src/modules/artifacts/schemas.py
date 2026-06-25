@@ -52,14 +52,12 @@ class SeverityEnum(str, Enum):
 class BugReportRequest(BaseModel):
     title: str
     description: str
-    severity: int
-    Severity: SeverityEnum
+    severity: SeverityEnum
 
 
 class BugReportResponse(BaseModel):
     id: uuid.UUID
     title: str
     description: str
-    severity: int
-    Severity: SeverityEnum
+    severity: SeverityEnum
     created_at: datetime
