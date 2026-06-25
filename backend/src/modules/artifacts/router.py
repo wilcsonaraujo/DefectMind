@@ -319,7 +319,7 @@ def link_requirement_to_story(
 ):
     query = """
     MATCH (s:Story {id: $story_id}), (r:Requirement {id: $req_id})
-    CREATE (s)-[rel:HAS_REQUIREMENT {relationship_type: $relationship_type}]->(r)
+    MERGE (s)-[rel:HAS_REQUIREMENT {relationship_type: $relationship_type}]->(r)
     RETURN s, r, rel
     """
     result = neo4j.run(
@@ -351,7 +351,7 @@ def link_testcase_to_requirement(
 ):
     query = """
     MATCH (r:Requirement {id: $req_id}), (t:TestCase {id: $tc_id})
-    CREATE (r)-[rel:COVERED_BY {relationship_type: $relationship_type}]->(t)
+    MERGE (r)-[rel:COVERED_BY {relationship_type: $relationship_type}]->(t)
     RETURN r, t, rel
     """
     result = neo4j.run(
