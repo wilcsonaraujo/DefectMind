@@ -247,12 +247,13 @@ def create_incident(
 ):
     new_id = str(uuid.uuid4())
     created_at = datetime.now(timezone.utc).isoformat()
-    query = "CREATE (i:Incident {id: $id, title: $title, description: $description, created_at: $created_at}) RETURN i"
+    query = "CREATE (i:Incident {id: $id, title: $title, description: $description, impact: $impact, created_at: $created_at}) RETURN i"
     result = neo4j.run(
         query,
         id=new_id,
         title=incident.title,
         description=incident.description,
+        impact=incident.impact.value,
         created_at=created_at,
     )
     created_incident = [dict(record["i"]) for record in result]
@@ -290,12 +291,13 @@ def create_postmortem(
 ):
     new_id = str(uuid.uuid4())
     created_at = datetime.now(timezone.utc).isoformat()
-    query = "CREATE (p:PostMortem {id: $id, title: $title, description: $description, created_at: $created_at}) RETURN p"
+    query = "CREATE (p:PostMortem {id: $id, root_cause: $root_cause, resolution: $resolution, lessons_learned: $lessons_learned, created_at: $created_at}) RETURN p"
     result = neo4j.run(
         query,
         id=new_id,
-        title=postmortem.title,
-        description=postmortem.description,
+        root_cause=postmortem.root_cause,
+        resolution=postmortem.resolution,
+        lessons_learned=postmortem.lessons_learned,
         created_at=created_at,
     )
     created_postmortem = [dict(record["p"]) for record in result]
