@@ -4,14 +4,15 @@ from typing import Any, Dict
 
 from google import genai
 from backend.src.core.ai import AIProvider
+from backend.src.core import settings
 
 
 class gemini_provider(AIProvider):
-    def __init__(self, api_key: str = None):
+    def __init__(self, api_key: str = settings.GEMINI_API_KEY):
         if not api_key:
             raise ValueError("The Gemini API key was not found.")
         
-        self.client = genai.Client(api_key=api_key)
+        self.client = genai.Client(api_key)
         self.gemini_model = "gemini-1.5-flash"
 
     def _call_model(self, prompt: str, config=None) -> str:
