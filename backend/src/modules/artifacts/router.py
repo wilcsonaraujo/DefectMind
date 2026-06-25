@@ -470,3 +470,25 @@ def link_requirements_to_story(
         return []
 
     return requirements
+
+@router.get(
+    "/testcases/{tc_id}/bugs",
+    response_model=list[BugReportResponse],
+    summary="Bugs founds by TestCase",
+)
+def link_bugs_founds_testcase(
+    tc_id: str,
+    neo4j=Depends(get_neo4j_session),
+    current_user: User = Depends(get_current_user),
+):
+    query = """
+    MATCH (t:TestCase {id: $tc_id})-[:FOUND]->(b:BugReport)
+    RETURN b
+    """
+    result = neo4j.run(query, tc_id=tc_id)
+    bugs = [dict(record["b"]) for record in result]
+
+    if not bugs:
+        return []
+
+    return bugs
