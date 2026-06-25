@@ -12,7 +12,6 @@ from backend.src.modules.artifacts.schemas import (
     IncidentResponse,
     PostMortemRequest,
     PostMortemResponse,
-    RelationshipRequest,
     RequirementRequest,
     RequirementResponse,
     StoryRequest,
@@ -364,6 +363,7 @@ def link_testcase_to_requirement(
 
     return {"message": "Test Case linked to Requirement successfully."}
 
+
 @router.post(
     "/testcases/{tc_id}/bugs/{bug_id}",
     summary="Link a test case to a bug",
@@ -387,9 +387,7 @@ def link_testcase_to_bug(
     records = [dict(record) for record in result]
 
     if not records:
-        raise HTTPException(
-            status_code=404, detail="Test Case or Bug ID not found."
-        )
+        raise HTTPException(status_code=404, detail="Test Case or Bug ID not found.")
 
     return {"message": "Test Case linked to Bug successfully."}
 
