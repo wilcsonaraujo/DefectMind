@@ -117,12 +117,12 @@ def create_requirement(
 ):
     new_id = str(uuid.uuid4())
     created_at = datetime.now(timezone.utc).isoformat()
-    query = """CREATE (r:Requirement {id: $id, title: $title, description: $description, created_at: $created_at}) RETURN r"""
+    query = """CREATE (r:Requirement {id: $id, description: $description, priority: $priority, created_at: $created_at}) RETURN r"""
     result = neo4j.run(
         query,
         id=new_id,
-        title=requirement.title,
         description=requirement.description,
+        priority=requirement.priority,
         created_at=created_at,
     )
     created_requirement = [dict(record["r"]) for record in result]
