@@ -96,3 +96,9 @@ class PostMortemResponse(BaseModel):
     resolution: str
     lessons_learned: str
     created_at: datetime
+
+class RelationshipRequest(BaseModel):
+    message: str
+    from_id: str
+    to_id: str
+    relationship_type: str
