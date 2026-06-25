@@ -6,6 +6,10 @@ os.environ.setdefault("ENVIRONMENT", "test")
 os.environ.setdefault("APP_NAME", "DefectMind")
 os.environ.setdefault("APP_VERSION", "0.1.0")
 os.environ.setdefault("JWT_SECRET_KEY", "test-secret-key-insecure")
+os.environ.setdefault("NEO4J_URI", "")
+os.environ.setdefault("NEO4J_USER", "")
+os.environ.setdefault("NEO4J_PASSWORD", "")
+
 
 import pytest
 from fastapi.testclient import TestClient
@@ -13,6 +17,7 @@ from sqlalchemy import StaticPool, create_engine
 from sqlalchemy.orm import sessionmaker
 from backend.src.core.database import Base, get_db
 from backend.src.main import app
+from backend.src.core.neo4j_db import get_neo4j_session
 
 # Import models to ensure they are registered with SQLAlchemy
 import backend.src.models  # noqa: F401
@@ -53,3 +58,18 @@ def client(db):
     with TestClient(app) as c:
         yield c
     app.dependency_overrides.clear()
+
+
+class FakeNeo4jSession:
+    def run(self, query, **kwargs):
+        return []
+
+
+@pytest.fixture(scope="function", autouse=True)
+def override_neo4j(client):
+    def fake_session():
+        yield FakeNeo4jSession()
+
+    app.dependency_overrides[get_neo4j_session] = fake_session
+    yield
+    app.dependency_overrides.pop(get_neo4j_session, None)
