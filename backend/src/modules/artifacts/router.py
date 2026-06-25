@@ -231,7 +231,7 @@ def get_incidents(
     incidents = [dict(record["i"]) for record in result]
 
     if not incidents:
-        raise HTTPException(status_code=404, detail="No incidents found.")
+        return []
 
     return incidents
 
@@ -274,7 +274,7 @@ def get_postmortems(
     postmortems = [dict(record["p"]) for record in result]
 
     if not postmortems:
-        raise HTTPException(status_code=404, detail="No post-mortems found.")
+        return []
 
     return postmortems
 
