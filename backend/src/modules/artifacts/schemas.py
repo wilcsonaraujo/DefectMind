@@ -27,10 +27,47 @@ class RequirementResponse(BaseModel):
     priority: int
     created_at: datetime
 
+
+class TestCaseRequest(BaseModel):
+    title: str
+    steps: str
+    expected_result: str
+
+
+class TestCaseResponse(BaseModel):
+    id: uuid.UUID
+    title: str
+    steps: str
+    expected_result: str
+    created_at: datetime
+
+
+class SeverityEnum(str, Enum):
+    LOW = "Low"
+    MEDIUM = "Medium"
+    HIGH = "High"
+    CRITICAL = "Critical"
+
+
+class BugReportRequest(BaseModel):
+    title: str
+    description: str
+    severity: SeverityEnum
+
+
+class BugReportResponse(BaseModel):
+    id: uuid.UUID
+    title: str
+    description: str
+    severity: SeverityEnum
+    created_at: datetime
+
+
 class IncidentRequest(BaseModel):
     title: str
     description: str
     impact: int
+
 
 class IncidentResponse(BaseModel):
     id: uuid.UUID
@@ -39,10 +76,12 @@ class IncidentResponse(BaseModel):
     impact: int
     created_at: datetime
 
+
 class PostMortemRequest(BaseModel):
     root_cause: str
     resolution: str
     lessons_learned: str
+
 
 class PostMortemResponse(BaseModel):
     id: uuid.UUID
