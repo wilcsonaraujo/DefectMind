@@ -10,6 +10,10 @@ from backend.src.modules.artifacts.schemas import (
     RequirementResponse,
     StoryRequest,
     StoryResponse,
+    bugReportRequest,
+    bugReportResponse,
+    testCaseRequest,
+    testCaseResponse,
 )
 
 router = APIRouter()
@@ -119,3 +123,92 @@ def create_requirement(
     created_requirement = [dict(record["r"]) for record in result]
 
     return created_requirement[0] if created_requirement else None
+
+
+@router.get(
+    "/testcases",
+    response_model=list[testCaseResponse],
+    summary="Get all test cases from Neo4j",
+)
+def get_test_cases(
+    neo4j=Depends(get_neo4j_session), current_user: User = Depends(get_current_user)
+):
+    query = "MATCH (t:TestCase) RETURN t"
+    result = neo4j.run(query)
+    test_cases = [dict(record["t"]) for record in result]
+
+    if not test_cases:
+        return []
+
+    return test_cases
+
+
+@router.post(
+    "/testcases",
+    response_model=testCaseResponse,
+    summary="Create a new test case in Neo4j",
+)
+def create_test_case(
+    test_case: testCaseRequest,
+    neo4j=Depends(get_neo4j_session),
+    current_user: User = Depends(get_current_user),
+):
+    new_id = str(uuid.uuid4())
+    created_at = datetime.now(timezone.utc).isoformat()
+    query = "CREATE (t:TestCase {id: $id, title: $title, steps: $steps, expected_result: $expected_result, created_at: $created_at}) RETURN t"
+    result = neo4j.run(
+        query,
+        id=new_id,
+        title=test_case.title,
+        steps=test_case.steps,
+        expected_result=test_case.expected_result,
+        created_at=created_at,
+    )
+    created_test_case = [dict(record["t"]) for record in result]
+
+    return created_test_case[0] if created_test_case else None
+
+
+@router.get(
+    "/bugreports",
+    response_model=list[bugReportResponse],
+    summary="Get all bug reports from Neo4j",
+)
+def get_bug_reports(
+    neo4j=Depends(get_neo4j_session), current_user: User = Depends(get_current_user)
+):
+    query = "MATCH (b:BugReport) RETURN b"
+    result = neo4j.run(query)
+    bug_reports = [dict(record["b"]) for record in result]
+
+    if not bug_reports:
+        return []
+
+    return bug_reports
+
+
+@router.post(
+    "/bugreports",
+    response_model=bugReportResponse,
+    summary="Create a new bug report in Neo4j",
+)
+def create_bug_report(
+    bug_report: bugReportRequest,
+    neo4j=Depends(get_neo4j_session),
+    current_user: User = Depends(get_current_user),
+):
+    new_id = str(uuid.uuid4())
+    created_at = datetime.now(timezone.utc).isoformat()
+    query = "CREATE (b:BugReport {id: $id, title: $title, description: $description, severity: $severity, status: $status, created_at: $created_at}) RETURN b"
+    result = neo4j.run(
+        query,
+        id=new_id,
+        title=bug_report.title,
+        description=bug_report.description,
+        severity=bug_report.severity,
+        status=bug_report.status.value,
+        created_at=created_at,
+    )
+    created_bug_report = [dict(record["b"]) for record in result]
+
+    return created_bug_report[0] if created_bug_report else None
