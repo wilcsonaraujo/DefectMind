@@ -448,3 +448,47 @@ def link_incident_to_postmortem(
         )
 
     return {"message": "Incident linked to PostMortem successfully."}
+
+@router.get(
+    "/stories/{story_id}/requirements",
+    response_model=list[RequirementResponse],
+    summary="Requirements linked to Story",
+)
+def get_requirements_by_story(
+    story_id: str,
+    neo4j=Depends(get_neo4j_session),
+    current_user: User = Depends(get_current_user),
+):
+    query = """
+    MATCH (s:Story {id: $story_id})-[:HAS_REQUIREMENT]->(r:Requirement)
+    RETURN r
+    """
+    result = neo4j.run(query, story_id=story_id)
+    requirements = [dict(record["r"]) for record in result]
+
+    if not requirements:
+        raise HTTPException(status_code=404, detail="Story and Requirement node does not exist.")
+
+    return requirements
+
+@router.get(
+    "/testcases/{tc_id}/bugs",
+    response_model=list[BugReportResponse],
+    summary="Bugs founds by TestCase",
+)
+def get_bugs_by_testcase(
+    tc_id: str,
+    neo4j=Depends(get_neo4j_session),
+    current_user: User = Depends(get_current_user),
+):
+    query = """
+    MATCH (t:TestCase {id: $tc_id})-[:FOUND]->(b:BugReport)
+    RETURN b
+    """
+    result = neo4j.run(query, tc_id=tc_id)
+    bugs = [dict(record["b"]) for record in result]
+
+    if not bugs:
+        raise HTTPException(status_code=404, detail="Test Case and Bugs node does not exist.")
+
+    return bugs
