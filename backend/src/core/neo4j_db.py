@@ -12,7 +12,6 @@ def init_neo4j_driver():
         settings.NEO4J_URI,
         auth=(settings.NEO4J_USER, settings.NEO4J_PASSWORD),
     )
-    _driver.verify_connectivity()
 
 def close_neo4j_driver():
     global _driver
