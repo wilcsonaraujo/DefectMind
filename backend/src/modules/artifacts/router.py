@@ -14,6 +14,8 @@ from backend.src.modules.artifacts.schemas import (
     RequirementResponse,
     StoryRequest,
     StoryResponse,
+    TestCaseRequest,
+    TestCaseResponse,
 )
 
 router = APIRouter()
@@ -31,7 +33,7 @@ def get_stories(
     stories = [dict(record["s"]) for record in result]
 
     if not stories:
-        raise HTTPException(status_code=404, detail="No stories found.")
+        return []
 
     return stories
 
@@ -68,12 +70,12 @@ def create_story(
     new_id = str(uuid.uuid4())
     created_at = datetime.now(timezone.utc).isoformat()
 
-    query = "CREATE (s:Story {id: $id, title: $title, content: $content, created_at: $created_at}) RETURN s"
+    query = "CREATE (s:Story {id: $id, title: $title, description: $description, created_at: $created_at}) RETURN s"
     result = neo4j.run(
         query,
         id=new_id,
         title=story.title,
-        content=story.content,
+        description=story.description,
         created_at=created_at,
     )
     created_story = [dict(record["s"]) for record in result]
@@ -95,7 +97,7 @@ def get_requirements(
     requirements = [dict(record["r"]) for record in result]
 
     if not requirements:
-        raise HTTPException(status_code=404, detail="No requirements found.")
+        return []
 
     return requirements
 
