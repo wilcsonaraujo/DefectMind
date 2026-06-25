@@ -368,3 +368,65 @@ def link_testcase_to_requirement(
         )
 
     return {"message": "Test Case linked to Requirement successfully."}
+
+
+@router.post(
+    "/bugs/{bug_id}/incidents/{incident_id}",
+    summary="Link a bug to an incident",
+)
+def link_bug_to_incident(
+    bug_id: str,
+    incident_id: str,
+    relationship: RelationshipRequest,
+    neo4j=Depends(get_neo4j_session),
+    current_user: User = Depends(get_current_user),
+):
+    query = """
+    MATCH (b:Bug {id: $bug_id}), (i:Incident {id: $incident_id})
+    MERGE (b)-[rel:CAUSED {relationship_type: $relationship_type}]->(i)
+    RETURN b, i, rel
+    """
+    result = neo4j.run(
+        query,
+        bug_id=bug_id,
+        incident_id=incident_id,
+        relationship_type=relationship.relationship_type,
+    )
+    records = [dict(record) for record in result]
+
+    if not records:
+        raise HTTPException(status_code=404, detail="Bug or Incident ID not found.")
+
+    return {"message": "Incident linked to Bug successfully."}
+
+
+@router.post(
+    "/incidents/{incident_id}/postmortems/{pm_id}",
+    summary="Link an incident to a postmortem",
+)
+def link_incident_to_postmortem(
+    incident_id: str,
+    pm_id: str,
+    relationship: RelationshipRequest,
+    neo4j=Depends(get_neo4j_session),
+    current_user: User = Depends(get_current_user),
+):
+    query = """
+    MATCH (i:Incident {id: $incident_id}), (p:PostMortem {id: $pm_id})
+    MERGE (i)-[rel:ROOT_CAUSE {relationship_type: $relationship_type}]->(p)
+    RETURN i, p, rel
+    """
+    result = neo4j.run(
+        query,
+        pm_id=pm_id,
+        incident_id=incident_id,
+        relationship_type=relationship.relationship_type,
+    )
+    records = [dict(record) for record in result]
+
+    if not records:
+        raise HTTPException(
+            status_code=404, detail="Incident or PostMortem ID not found."
+        )
+
+    return {"message": "Incident linked to PostMortem successfully."}
