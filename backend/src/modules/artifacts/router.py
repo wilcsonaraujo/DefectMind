@@ -8,6 +8,10 @@ from backend.src.models.user import User
 from backend.src.modules.artifacts.schemas import (
     BugReportRequest,
     BugReportResponse,
+    IncidentRequest,
+    IncidentResponse,
+    PostMortemRequest,
+    PostMortemResponse,
     RequirementRequest,
     RequirementResponse,
     StoryRequest,
@@ -212,3 +216,89 @@ def create_bug_report(
     created_bug_report = [dict(record["b"]) for record in result]
 
     return created_bug_report[0] if created_bug_report else None
+
+
+@router.get(
+    "/incidents",
+    response_model=list[IncidentResponse],
+    summary="Get all incidents from Neo4j",
+)
+def get_incidents(
+    neo4j=Depends(get_neo4j_session), current_user: User = Depends(get_current_user)
+):
+    query = "MATCH (i:Incident) RETURN i"
+    result = neo4j.run(query)
+    incidents = [dict(record["i"]) for record in result]
+
+    if not incidents:
+        raise HTTPException(status_code=404, detail="No incidents found.")
+
+    return incidents
+
+
+@router.post(
+    "/incidents",
+    response_model=IncidentResponse,
+    summary="Create a new incident in Neo4j",
+)
+def create_incident(
+    incident: IncidentRequest,
+    neo4j=Depends(get_neo4j_session),
+    current_user: User = Depends(get_current_user),
+):
+    new_id = str(uuid.uuid4())
+    created_at = datetime.now(timezone.utc).isoformat()
+    query = "CREATE (i:Incident {id: $id, title: $title, description: $description, created_at: $created_at}) RETURN i"
+    result = neo4j.run(
+        query,
+        id=new_id,
+        title=incident.title,
+        description=incident.description,
+        created_at=created_at,
+    )
+    created_incident = [dict(record["i"]) for record in result]
+
+    return created_incident[0] if created_incident else None
+
+
+@router.get(
+    "/postmortems",
+    response_model=list[PostMortemResponse],
+    summary="Get all post-mortems from Neo4j",
+)
+def get_postmortems(
+    neo4j=Depends(get_neo4j_session), current_user: User = Depends(get_current_user)
+):
+    query = "MATCH (p:PostMortem) RETURN p"
+    result = neo4j.run(query)
+    postmortems = [dict(record["p"]) for record in result]
+
+    if not postmortems:
+        raise HTTPException(status_code=404, detail="No post-mortems found.")
+
+    return postmortems
+
+
+@router.post(
+    "/postmortems",
+    response_model=PostMortemResponse,
+    summary="Create a new post-mortem in Neo4j",
+)
+def create_postmortem(
+    postmortem: PostMortemRequest,
+    neo4j=Depends(get_neo4j_session),
+    current_user: User = Depends(get_current_user),
+):
+    new_id = str(uuid.uuid4())
+    created_at = datetime.now(timezone.utc).isoformat()
+    query = "CREATE (p:PostMortem {id: $id, title: $title, description: $description, created_at: $created_at}) RETURN p"
+    result = neo4j.run(
+        query,
+        id=new_id,
+        title=postmortem.title,
+        description=postmortem.description,
+        created_at=created_at,
+    )
+    created_postmortem = [dict(record["p"]) for record in result]
+
+    return created_postmortem[0] if created_postmortem else None
