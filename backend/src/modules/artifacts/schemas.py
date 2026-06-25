@@ -1,0 +1,24 @@
+from datetime import datetime
+import uuid
+from pydantic import BaseModel
+
+
+class StoryRequest(BaseModel):
+    title: str
+    description: str
+
+class StoryResponse(BaseModel):
+    id: uuid.UUID
+    title: str
+    description: str
+    created_at: datetime
+
+class RequirementRequest(BaseModel):
+    description: str
+    priority: int
+
+class RequirementResponse(BaseModel):
+    id: uuid.UUID
+    description: str
+    priority: int
+    created_at: datetime
