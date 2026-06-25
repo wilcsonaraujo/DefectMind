@@ -448,3 +448,25 @@ def link_incident_to_postmortem(
         )
 
     return {"message": "Incident linked to PostMortem successfully."}
+
+@router.get(
+    "/stories/{story_id}/requirements",
+    response_model=list[RequirementResponse],
+    summary="Requirements linked to Story",
+)
+def link_requirements_to_story(
+    story_id: str,
+    neo4j=Depends(get_neo4j_session),
+    current_user: User = Depends(get_current_user),
+):
+    query = """
+    MATCH (s:Story {id: $story_id})-[:HAS_REQUIREMENT]->(r:Requirement)
+    RETURN r
+    """
+    result = neo4j.run(query, story_id=story_id)
+    requirements = [dict(record["r"]) for record in result]
+
+    if not requirements:
+        return []
+
+    return requirements
