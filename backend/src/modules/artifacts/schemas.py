@@ -28,13 +28,13 @@ class RequirementResponse(BaseModel):
     created_at: datetime
 
 
-class testCaseRequest(BaseModel):
+class TestCaseRequest(BaseModel):
     title: str
     steps: str
     expected_result: str
 
 
-class testCaseResponse(BaseModel):
+class TestCaseResponse(BaseModel):
     id: uuid.UUID
     title: str
     steps: str
@@ -42,24 +42,24 @@ class testCaseResponse(BaseModel):
     created_at: datetime
 
 
-class statusEnum(str, Enum):
+class SeverityEnum(str, Enum):
     LOW = "Low"
     MEDIUM = "Medium"
     HIGH = "High"
     CRITICAL = "Critical"
 
 
-class bugReportRequest(BaseModel):
+class BugReportRequest(BaseModel):
     title: str
     description: str
     severity: int
-    status: statusEnum
+    Severity: SeverityEnum
 
 
-class bugReportResponse(BaseModel):
+class BugReportResponse(BaseModel):
     id: uuid.UUID
     title: str
     description: str
     severity: int
-    status: statusEnum
+    Severity: SeverityEnum
     created_at: datetime

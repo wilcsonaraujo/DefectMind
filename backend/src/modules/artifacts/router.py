@@ -6,14 +6,14 @@ from backend.src.core.dependencies import get_current_user
 from backend.src.core.neo4j_db import get_neo4j_session
 from backend.src.models.user import User
 from backend.src.modules.artifacts.schemas import (
+    BugReportRequest,
+    BugReportResponse,
     RequirementRequest,
     RequirementResponse,
     StoryRequest,
     StoryResponse,
-    bugReportRequest,
-    bugReportResponse,
-    testCaseRequest,
-    testCaseResponse,
+    TestCaseRequest,
+    TestCaseResponse,
 )
 
 router = APIRouter()
@@ -127,7 +127,7 @@ def create_requirement(
 
 @router.get(
     "/testcases",
-    response_model=list[testCaseResponse],
+    response_model=list[TestCaseResponse],
     summary="Get all test cases from Neo4j",
 )
 def get_test_cases(
@@ -145,11 +145,11 @@ def get_test_cases(
 
 @router.post(
     "/testcases",
-    response_model=testCaseResponse,
+    response_model=TestCaseResponse,
     summary="Create a new test case in Neo4j",
 )
 def create_test_case(
-    test_case: testCaseRequest,
+    test_case: TestCaseRequest,
     neo4j=Depends(get_neo4j_session),
     current_user: User = Depends(get_current_user),
 ):
@@ -171,7 +171,7 @@ def create_test_case(
 
 @router.get(
     "/bugreports",
-    response_model=list[bugReportResponse],
+    response_model=list[BugReportResponse],
     summary="Get all bug reports from Neo4j",
 )
 def get_bug_reports(
@@ -189,11 +189,11 @@ def get_bug_reports(
 
 @router.post(
     "/bugreports",
-    response_model=bugReportResponse,
+    response_model=BugReportResponse,
     summary="Create a new bug report in Neo4j",
 )
 def create_bug_report(
-    bug_report: bugReportRequest,
+    bug_report: BugReportRequest,
     neo4j=Depends(get_neo4j_session),
     current_user: User = Depends(get_current_user),
 ):
