@@ -17,7 +17,6 @@ from sqlalchemy import StaticPool, create_engine
 from sqlalchemy.orm import sessionmaker
 from backend.src.core.database import Base, get_db
 from backend.src.main import app
-from unittest.mock import MagicMock
 from backend.src.core.neo4j_db import get_neo4j_session
 
 # Import models to ensure they are registered with SQLAlchemy
