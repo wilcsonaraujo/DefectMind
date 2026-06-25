@@ -312,20 +312,18 @@ def create_postmortem(
 def link_requirement_to_story(
     story_id: str,
     req_id: str,
-    relationship: RelationshipRequest,
     neo4j=Depends(get_neo4j_session),
     current_user: User = Depends(get_current_user),
 ):
     query = """
     MATCH (s:Story {id: $story_id}), (r:Requirement {id: $req_id})
-    MERGE (s)-[rel:HAS_REQUIREMENT {relationship_type: $relationship_type}]->(r)
+    MERGE (s)-[rel:HAS_REQUIREMENT]->(r)
     RETURN s, r, rel
     """
     result = neo4j.run(
         query,
         story_id=story_id,
         req_id=req_id,
-        relationship_type=relationship.relationship_type,
     )
     records = [dict(record) for record in result]
 
@@ -344,20 +342,18 @@ def link_requirement_to_story(
 def link_testcase_to_requirement(
     req_id: str,
     tc_id: str,
-    relationship: RelationshipRequest,
     neo4j=Depends(get_neo4j_session),
     current_user: User = Depends(get_current_user),
 ):
     query = """
     MATCH (r:Requirement {id: $req_id}), (t:TestCase {id: $tc_id})
-    MERGE (r)-[rel:COVERED_BY {relationship_type: $relationship_type}]->(t)
+    MERGE (r)-[rel:COVERED_BY]->(t)
     RETURN r, t, rel
     """
     result = neo4j.run(
         query,
         req_id=req_id,
         tc_id=tc_id,
-        relationship_type=relationship.relationship_type,
     )
     records = [dict(record) for record in result]
 
@@ -375,20 +371,18 @@ def link_testcase_to_requirement(
 def link_testcase_to_bug(
     tc_id: str,
     bug_id: str,
-    relationship: RelationshipRequest,
     neo4j=Depends(get_neo4j_session),
     current_user: User = Depends(get_current_user),
 ):
     query = """
-    MATCH (t:TestCase {id: $tc_id}), (b:Bug {id: $bug_id})
-    MERGE (t)-[rel:COVERED_BY {relationship_type: $relationship_type}]->(b)
+    MATCH (t:TestCase {id: $tc_id}), (b:BugReport {id: $bug_id})
+    MERGE (t)-[rel:FOUND]->(b)
     RETURN t, b, rel
     """
     result = neo4j.run(
         query,
         tc_id=tc_id,
         bug_id=bug_id,
-        relationship_type=relationship.relationship_type,
     )
     records = [dict(record) for record in result]
 
@@ -407,20 +401,18 @@ def link_testcase_to_bug(
 def link_bug_to_incident(
     bug_id: str,
     incident_id: str,
-    relationship: RelationshipRequest,
     neo4j=Depends(get_neo4j_session),
     current_user: User = Depends(get_current_user),
 ):
     query = """
-    MATCH (b:Bug {id: $bug_id}), (i:Incident {id: $incident_id})
-    MERGE (b)-[rel:CAUSED {relationship_type: $relationship_type}]->(i)
+    MATCH (b:BugReport {id: $bug_id}), (i:Incident {id: $incident_id})
+    MERGE (b)-[rel:CAUSED]->(i)
     RETURN b, i, rel
     """
     result = neo4j.run(
         query,
         bug_id=bug_id,
         incident_id=incident_id,
-        relationship_type=relationship.relationship_type,
     )
     records = [dict(record) for record in result]
 
@@ -437,20 +429,18 @@ def link_bug_to_incident(
 def link_incident_to_postmortem(
     incident_id: str,
     pm_id: str,
-    relationship: RelationshipRequest,
     neo4j=Depends(get_neo4j_session),
     current_user: User = Depends(get_current_user),
 ):
     query = """
     MATCH (i:Incident {id: $incident_id}), (p:PostMortem {id: $pm_id})
-    MERGE (i)-[rel:ROOT_CAUSE {relationship_type: $relationship_type}]->(p)
+    MERGE (i)-[rel:ROOT_CAUSE]->(p)
     RETURN i, p, rel
     """
     result = neo4j.run(
         query,
         pm_id=pm_id,
         incident_id=incident_id,
-        relationship_type=relationship.relationship_type,
     )
     records = [dict(record) for record in result]
 
