@@ -63,22 +63,32 @@ class BugReportResponse(BaseModel):
     created_at: datetime
 
 
+class ImpactEnum(str, Enum):
+    LOW = "Low"
+    MEDIUM = "Medium"
+    HIGH = "High"
+    CRITICAL = "Critical"
+
+
 class IncidentRequest(BaseModel):
     title: str
     description: str
-    impact: int
+    impact: ImpactEnum
+
 
 class IncidentResponse(BaseModel):
     id: uuid.UUID
     title: str
     description: str
-    impact: int
+    impact: ImpactEnum
     created_at: datetime
+
 
 class PostMortemRequest(BaseModel):
     root_cause: str
     resolution: str
     lessons_learned: str
+
 
 class PostMortemResponse(BaseModel):
     id: uuid.UUID
