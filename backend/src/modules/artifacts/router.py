@@ -454,7 +454,7 @@ def link_incident_to_postmortem(
     response_model=list[RequirementResponse],
     summary="Requirements linked to Story",
 )
-def link_requirements_to_story(
+def get_requirements_by_story(
     story_id: str,
     neo4j=Depends(get_neo4j_session),
     current_user: User = Depends(get_current_user),
@@ -467,7 +467,7 @@ def link_requirements_to_story(
     requirements = [dict(record["r"]) for record in result]
 
     if not requirements:
-        return []
+        raise HTTPException(status_code=404, detail="Story and Requirement node does not exist.")
 
     return requirements
 
@@ -476,7 +476,7 @@ def link_requirements_to_story(
     response_model=list[BugReportResponse],
     summary="Bugs founds by TestCase",
 )
-def link_bugs_founds_testcase(
+def get_bugs_by_testcase(
     tc_id: str,
     neo4j=Depends(get_neo4j_session),
     current_user: User = Depends(get_current_user),
@@ -489,6 +489,6 @@ def link_bugs_founds_testcase(
     bugs = [dict(record["b"]) for record in result]
 
     if not bugs:
-        return []
+        raise HTTPException(status_code=404, detail="Test Case and Bugs node does not exist.")
 
     return bugs
