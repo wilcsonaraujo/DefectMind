@@ -204,14 +204,13 @@ def create_bug_report(
 ):
     new_id = str(uuid.uuid4())
     created_at = datetime.now(timezone.utc).isoformat()
-    query = """CREATE (b:BugReport {id: $id, title: $title, description: $description, severity: $severity, status: $status, created_at: $created_at}) RETURN b"""
+    query = """CREATE (b:BugReport {id: $id, title: $title, description: $description, severity: $severity, created_at: $created_at}) RETURN b"""
     result = neo4j.run(
         query,
         id=new_id,
         title=bug_report.title,
         description=bug_report.description,
         severity=bug_report.severity,
-        status=bug_report.status.value,
         created_at=created_at,
     )
     created_bug_report = [dict(record["b"]) for record in result]
@@ -368,6 +367,37 @@ def link_testcase_to_requirement(
         )
 
     return {"message": "Test Case linked to Requirement successfully."}
+
+@router.post(
+    "/testcases/{tc_id}/bugs/{bug_id}",
+    summary="Link a test case to a bug",
+)
+def link_testcase_to_bug(
+    tc_id: str,
+    bug_id: str,
+    relationship: RelationshipRequest,
+    neo4j=Depends(get_neo4j_session),
+    current_user: User = Depends(get_current_user),
+):
+    query = """
+    MATCH (t:TestCase {id: $tc_id}), (b:Bug {id: $bug_id})
+    MERGE (t)-[rel:COVERED_BY {relationship_type: $relationship_type}]->(b)
+    RETURN t, b, rel
+    """
+    result = neo4j.run(
+        query,
+        tc_id=tc_id,
+        bug_id=bug_id,
+        relationship_type=relationship.relationship_type,
+    )
+    records = [dict(record) for record in result]
+
+    if not records:
+        raise HTTPException(
+            status_code=404, detail="Test Case or Bug ID not found."
+        )
+
+    return {"message": "Test Case linked to Bug successfully."}
 
 
 @router.post(
