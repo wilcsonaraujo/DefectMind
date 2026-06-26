@@ -15,10 +15,14 @@ class StoryResponse(BaseModel):
     description: str
     created_at: datetime
 
+class PriorityEnum(str, Enum):
+    LOW = "Low"
+    MEDIUM = "Medium"
+    HIGH = "High"
 
 class RequirementRequest(BaseModel):
     description: str
-    priority: int
+    priority: PriorityEnum
 
 
 class RequirementResponse(BaseModel):
