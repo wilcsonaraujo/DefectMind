@@ -1,6 +1,8 @@
+from datetime import datetime, timezone
+import logging
 import uuid
 
-from backend.src.core.ai.gemini_provider import GeminiProvider
+from pydantic import ValidationError
 from backend.src.core.ai.provider import AIProvider
 from backend.src.modules.data_forge.prompts import build_prompt
 from backend.src.modules.data_forge.schemas import DataForgeOutput
@@ -9,10 +11,12 @@ from backend.src.modules.data_forge.schemas import DataForgeOutput
 class DataForgeService:
 
     def __init__(self, ai_provider: AIProvider, neo4j_session):
-        self.ai = (ai_provider,)
+        self.ai = ai_provider
         self.db = neo4j_session
 
     def _insert_batch(self, batch: DataForgeOutput):
+        now = datetime.now(timezone.utc)
+
         story_id_map = {s.temp_id: str(uuid.uuid4()) for s in batch.stories}
         requirement_id_map = {r.temp_id: str(uuid.uuid4()) for r in batch.requirements}
         testcase_id_map = {t.temp_id: str(uuid.uuid4()) for t in batch.testcases}
@@ -38,14 +42,14 @@ class DataForgeService:
         postmortems_query = """MERGE (p:PostMortem {id: $id})
         SET p.root_cause = $root_cause, p.resolution = $resolution, p.lessons_learned = $lessons_learned, p.created_at = $created_at
         """
-        for story in batch.story:
+        for story in batch.stories:
             uuid_real = story_id_map[story.temp_id]
             self.db.run(
                 stories_query,
                 id=uuid_real,
                 title=story.title,
                 description=story.description,
-                created_at=story.created_at,
+                created_at=now,
             )
         for requirement in batch.requirements:
             uuid_real = requirement_id_map[requirement.temp_id]
@@ -54,7 +58,7 @@ class DataForgeService:
                 id=uuid_real,
                 description=requirement.description,
                 priority=requirement.priority,
-                created_at=requirement.created_at,
+                created_at=now,
             )
         for testcase in batch.testcases:
             uuid_real = testcase_id_map[testcase.temp_id]
@@ -64,7 +68,7 @@ class DataForgeService:
                 title=testcase.title,
                 steps=testcase.steps,
                 expected_result=testcase.expected_result,
-                created_at=testcase.created_at,
+                created_at=now,
             )
         for bug_report in batch.bug_reports:
             uuid_real = bugreport_id_map[bug_report.temp_id]
@@ -74,7 +78,7 @@ class DataForgeService:
                 title=bug_report.title,
                 description=bug_report.description,
                 severity=bug_report.severity,
-                created_at=bug_report.created_at,
+                created_at=now,
             )
         for incident in batch.incidents:
             uuid_real = incident_id_map[incident.temp_id]
@@ -84,7 +88,7 @@ class DataForgeService:
                 title=incident.title,
                 description=incident.description,
                 impact=incident.impact,
-                created_at=incident.created_at,
+                created_at=now,
             )
         for postmortem in batch.postmortems:
             uuid_real = postmortems_id_map[postmortem.temp_id]
@@ -93,8 +97,8 @@ class DataForgeService:
                 id=uuid_real,
                 root_cause=postmortem.root_cause,
                 resolution=postmortem.resolution,
-                lessions_learned=postmortem.lessons_learned,
-                created_at=postmortem.created_at,
+                lessons_learned=postmortem.lessons_learned,
+                created_at=now,
             )
 
         for requirement in batch.requirements:
@@ -116,10 +120,10 @@ class DataForgeService:
             self.db.run(relation_query, req_id=uuid_mother, tc_id=uuid_daughter)
 
         for bugs in batch.bug_reports:
-            uuid_mother = testcase_id_map[bug_report.testcase_temp_id]
-            uuid_daughter = bugreport_id_map[bug_report.temp_id]
+            uuid_mother = testcase_id_map[bugs.testcase_temp_id]
+            uuid_daughter = bugreport_id_map[bugs.temp_id]
             relation_query = """
-            MATCH (t:TestCase {id: $tc_id}), (r:b:BugReport {id: $bug_id})
+            MATCH (t:TestCase {id: $tc_id}), (b:BugReport {id: $bug_id})
             MERGE (t)-[:FOUND]->(b)
             """
             self.db.run(relation_query, tc_id=uuid_mother, bug_id=uuid_daughter)
@@ -145,10 +149,34 @@ class DataForgeService:
     def generate(self, num_stories: int, batch_size: int) -> dict:
         num_batches = num_stories // batch_size
 
+        totals = {
+            "stories": 0,
+            "requirements": 0,
+            "test_cases": 0,
+            "bug_reports": 0,
+            "incidents": 0,
+            "post_mortems": 0,
+            "batches_processed": 0,
+            "batches_failed": 0,
+        }
+
         for iteration in range(num_batches):
             prompt = build_prompt(batch_size)
             response_llm = self.ai.generate_json(prompt)
-            batch = DataForgeOutput.model_validate(response_llm)
-            if not batch:
-                raise ValueError(f"Validation error in iteration: {iteration}.")
-            self.db = self._insert_batch(batch)
+
+            try:
+                batch = DataForgeOutput.model_validate(response_llm)
+            except ValidationError as e:
+                logging.warning(f"Batch {iteration} failed validation: {e}")
+                continue
+
+            self._insert_batch(batch)
+            totals["stories"] += len(batch.stories)
+            totals["requirements"] += len(batch.requirements)
+            totals["test_cases"] += len(batch.testcases)
+            totals["bug_reports"] += len(batch.bug_reports)
+            totals["incidents"] += len(batch.incidents)
+            totals["post_mortems"] += len(batch.postmortems)
+            totals["batches_processed"] += 1
+
+        return totals
