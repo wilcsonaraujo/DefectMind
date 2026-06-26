@@ -40,23 +40,63 @@ class DataForgeService:
         """
         for story in batch.story:
             uuid_real = story_id_map[story.temp_id]
-            self.db.run(stories_query, id=uuid_real, title=story.title, description=story.description, created_at=story.created_at)
+            self.db.run(
+                stories_query,
+                id=uuid_real,
+                title=story.title,
+                description=story.description,
+                created_at=story.created_at,
+            )
         for requirement in batch.requirements:
             uuid_real = requirement_id_map[requirement.temp_id]
-            self.db.run(requirements_query, id=uuid_real, description=requirement.description, priority = requirement.priority, created_at=requirement.created_at)
+            self.db.run(
+                requirements_query,
+                id=uuid_real,
+                description=requirement.description,
+                priority=requirement.priority,
+                created_at=requirement.created_at,
+            )
         for testcase in batch.testcases:
             uuid_real = testcase_id_map[testcase.temp_id]
-            self.db.run(testcases_query, id=uuid_real, title=testcase.title, steps=testcase.steps, expected_result=testcase.expected_result, created_at=testcase.created_at)
+            self.db.run(
+                testcases_query,
+                id=uuid_real,
+                title=testcase.title,
+                steps=testcase.steps,
+                expected_result=testcase.expected_result,
+                created_at=testcase.created_at,
+            )
         for bug_report in batch.bug_reports:
             uuid_real = bugreport_id_map[bug_report.temp_id]
-            self.db.run(bug_reports_query, id=uuid_real, title=bug_report.title, description=bug_report.description, severity=bug_report.severity, created_at=bug_report.created_at)
+            self.db.run(
+                bug_reports_query,
+                id=uuid_real,
+                title=bug_report.title,
+                description=bug_report.description,
+                severity=bug_report.severity,
+                created_at=bug_report.created_at,
+            )
         for incident in batch.incidents:
             uuid_real = incident_id_map[incident.temp_id]
-            self.db.run(incidents_query, id=uuid_real, title=incident.title, description=incident.description, impact=incident.impact, created_at=incident.created_at)
+            self.db.run(
+                incidents_query,
+                id=uuid_real,
+                title=incident.title,
+                description=incident.description,
+                impact=incident.impact,
+                created_at=incident.created_at,
+            )
         for postmortem in batch.postmortems:
             uuid_real = postmortems_id_map[postmortem.temp_id]
-            self.db.run(postmortems_query, id=uuid_real, root_cause=postmortem.root_cause, resolution=postmortem.resolution, lessions_learned=postmortem.lessons_learned, created_at=postmortem.created_at)
-        
+            self.db.run(
+                postmortems_query,
+                id=uuid_real,
+                root_cause=postmortem.root_cause,
+                resolution=postmortem.resolution,
+                lessions_learned=postmortem.lessons_learned,
+                created_at=postmortem.created_at,
+            )
+
         for requirement in batch.requirements:
             uuid_mother = story_id_map[requirement.story_temp_id]
             uuid_daughter = requirement_id_map[requirement.temp_id]
@@ -65,7 +105,7 @@ class DataForgeService:
             MERGE (s)-[:HAS_REQUIREMENT]->(r)
             """
             self.db.run(relation_query, story_id=uuid_mother, req_id=uuid_daughter)
-        
+
         for testcase in batch.testcases:
             uuid_mother = requirement_id_map[testcase.requirement_temp_id]
             uuid_daughter = testcase_id_map[testcase.temp_id]
