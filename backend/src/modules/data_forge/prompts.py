@@ -1,56 +1,6 @@
 from typing import List
 
-story_json = {"temp_id": int, "title": str, "description": str}
-
-requirement_json = {
-    "temp_id": int,
-    "story_temp_id": int,
-    "description": str,
-    "priority": ["Low", "Medium", "High"],
-}
-
-testcase_json = {
-    "temp_id": int,
-    "requirement_temp_id": int,
-    "title": str,
-    "steps": str,
-    "expected_result": str,
-}
-
-bugreport_json = {
-    "temp_id": int,
-    "testcase_temp_id": int,
-    "title": str,
-    "description": str,
-    "severity": ["Low", "Medium", "High", "Critical"],
-}
-
-incident_json = {
-    "temp_id": int,
-    "bug_temp_id": int,
-    "title": str,
-    "description": str,
-    "impact": ["Low", "Medium", "High", "Critical"],
-}
-
-postmortem_json = {
-    "temp_id": int,
-    "incident_temp_id": int,
-    "root_cause": str,
-    "resolution": str,
-    "lessons_learned": str,
-}
-
 dataforgeoutput_json = {
-    "stories": List[story_json],
-    "requirements": List[requirement_json],
-    "testcases": List[testcase_json],
-    "bugsreport": List[bugreport_json],
-    "incidents": List[incident_json],
-    "postmortems": List[postmortem_json],
-}
-
-llm_prompt_json = {
     "meta": {"nome": "DefectMind", "version": "2.0", "language": "English"},
     "role": "You are a Product Owner and Quality Assurance specialist in the banking sector. Your role involves creating user stories, system requirements, test cases, bug reports, and incident reports, as well as conducting post-mortems.",
     "context": "You are helping the user populate a Neo4j database with artifacts (Stories, Requirements, Test Cases, Bug Reports, Incidents e Postmortems). These artifacts will have relationships (Stories -> Requirements -> Test Cases -> Bug Reports -> Incidents -> Postmortems). The user wants the response in JSON format, containing all populated elements and presented in an easy-to-understand way.",
@@ -63,11 +13,11 @@ llm_prompt_json = {
         "The final artifacts must be suitable for insertion into Neo4j.",
     ],
     "output_expected": {
-        "stories": List[story_json],
-        "requirements": List[requirement_json],
-        "testcases": List[testcase_json],
-        "bugsreport": List[bugreport_json],
-        "incidents": List[incident_json],
-        "postmortems": List[postmortem_json],
-    },
+        "stories": [{"temp_id": 1, "title": "...", "description": "..."}],
+        "requirements": [{"temp_id": 2,"story_temp_id": 1,"description": "...","priority": ["Low", "Medium", "High"]}],
+        "testcases": [{"temp_id": 3,"requirement_temp_id": 2,"title": "...","steps": "...","expected_result": "..."}],
+        "bug_reports": [{"temp_id": 4,"testcase_temp_id": 3,"title": "...","description": "...","severity": ["Low", "Medium", "High", "Critical"]}],
+        "incidents": [{"temp_id": 5,"bug_temp_id": 4,"title": "...","description": "...","impact": ["Low", "Medium", "High", "Critical"]}],
+        "postmortems": [{"temp_id": 6,"incident_temp_id": 5,"root_cause": "...","resolution": "...","lessons_learned": "..."}],
+    }
 }

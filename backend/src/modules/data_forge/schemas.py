@@ -3,12 +3,10 @@ from typing import List
 from pydantic import BaseModel
 
 
-class PostMortem(BaseModel):
-    temp_id: int
-    incident_temp_id: int
-    root_cause: str
-    resolution: str
-    lessons_learned: str
+class PriorityEnum(str, Enum):
+    LOW = "Low"
+    MEDIUM = "Medium"
+    HIGH = "High"
 
 
 class ImpactEnum(str, Enum):
@@ -18,19 +16,27 @@ class ImpactEnum(str, Enum):
     CRITICAL = "Critical"
 
 
+class SeverityEnum(str, Enum):
+    LOW = "Low"
+    MEDIUM = "Medium"
+    HIGH = "High"
+    CRITICAL = "Critical"
+
+
+class PostMortem(BaseModel):
+    temp_id: int
+    incident_temp_id: int
+    root_cause: str
+    resolution: str
+    lessons_learned: str
+
+
 class Incident(BaseModel):
     temp_id: int
     bug_temp_id: int
     title: str
     description: str
     impact: ImpactEnum
-
-
-class SeverityEnum(str, Enum):
-    LOW = "Low"
-    MEDIUM = "Medium"
-    HIGH = "High"
-    CRITICAL = "Critical"
 
 
 class BugReport(BaseModel):
@@ -48,10 +54,6 @@ class TestCase(BaseModel):
     steps: str
     expected_result: str
 
-class PriorityEnum(str, Enum):
-    LOW = "Low"
-    MEDIUM = "Medium"
-    HIGH = "High"
 
 class Requirement(BaseModel):
     temp_id: int
@@ -70,6 +72,6 @@ class DataForgeOutput(BaseModel):
     stories: List[Story]
     requirements: List[Requirement]
     testcases: List[TestCase]
-    bugsreport: List[BugReport]
+    bug_reports: List[BugReport]
     incidents: List[Incident]
     postmortems: List[PostMortem]
