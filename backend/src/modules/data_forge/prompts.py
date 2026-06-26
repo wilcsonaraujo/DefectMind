@@ -64,8 +64,7 @@ _output_example = {
 }
 
 
-def build_banking_prompt(batch_size: int) -> str:
-
-    _output_example["task"] = _output_example["task"].format(batch_size=batch_size)
-    prompt = json.dumps(_output_example, indent=2)
-    return prompt
+def build_prompt(batch_size: int) -> str:
+    prompt_data = _output_example.copy()
+    prompt_data["task"] = _output_example["task"].format(batch_size=batch_size)
+    return json.dumps(prompt_data, indent=2)
