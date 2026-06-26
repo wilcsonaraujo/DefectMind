@@ -18,6 +18,8 @@ from sqlalchemy.orm import sessionmaker
 from backend.src.core.database import Base, get_db
 from backend.src.main import app
 from backend.src.core.neo4j_db import get_neo4j_session
+from unittest.mock import MagicMock, patch
+from backend.src.core.ai.gemini_provider import GeminiProvider
 
 # Import models to ensure they are registered with SQLAlchemy
 import backend.src.models  # noqa: F401
@@ -73,3 +75,11 @@ def override_neo4j(client):
     app.dependency_overrides[get_neo4j_session] = fake_session
     yield
     app.dependency_overrides.pop(get_neo4j_session, None)
+
+
+@pytest.fixture
+def provider():
+    with patch("google.genai.Client") as mock_client_class:
+        mock_client = MagicMock()
+        mock_client_class.return_value = mock_client
+        yield GeminiProvider(api_key="fake-key")

@@ -19,9 +19,13 @@ class Settings(BaseSettings):
     NEO4J_USER: Optional[str] = None
     NEO4J_PASSWORD: Optional[str] = None
 
+    # GEMINI
+    GEMINI_API_KEY: Optional[str] = None
+
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
+        extra = "ignore"
 
 
 settings = Settings()
