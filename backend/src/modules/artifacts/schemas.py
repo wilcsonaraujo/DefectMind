@@ -28,7 +28,7 @@ class RequirementRequest(BaseModel):
 class RequirementResponse(BaseModel):
     id: uuid.UUID
     description: str
-    priority: int
+    priority: PriorityEnum
     created_at: datetime
 
 
