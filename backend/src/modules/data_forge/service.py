@@ -57,7 +57,7 @@ class DataForgeService:
                 requirements_query,
                 id=uuid_real,
                 description=requirement.description,
-                priority=requirement.priority,
+                priority=requirement.priority.value,
                 created_at=now,
             )
         for testcase in batch.testcases:
@@ -77,7 +77,7 @@ class DataForgeService:
                 id=uuid_real,
                 title=bug_report.title,
                 description=bug_report.description,
-                severity=bug_report.severity,
+                severity=bug_report.severity.value,
                 created_at=now,
             )
         for incident in batch.incidents:
@@ -87,7 +87,7 @@ class DataForgeService:
                 id=uuid_real,
                 title=incident.title,
                 description=incident.description,
-                impact=incident.impact,
+                impact=incident.impact.value,
                 created_at=now,
             )
         for postmortem in batch.postmortems:
@@ -168,6 +168,7 @@ class DataForgeService:
                 batch = DataForgeOutput.model_validate(response_llm)
             except ValidationError as e:
                 logging.warning(f"Batch {iteration} failed validation: {e}")
+                totals["batches_failed"] += 1
                 continue
 
             self._insert_batch(batch)
