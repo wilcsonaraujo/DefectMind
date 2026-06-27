@@ -25,6 +25,9 @@ class Settings(BaseSettings):
     # DEEPSEEK
     DEEPSEEK_API_KEY: Optional[str] = None
 
+    # AI PROVIDER SELECTOR
+    AI_PROVIDER: str = "deepseek"   # Choose a valid model: "deepseek", "gemini"
+
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
