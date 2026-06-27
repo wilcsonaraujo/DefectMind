@@ -29,7 +29,7 @@ class Settings(BaseSettings):
     GROQ_API_KEY: Optional[str] = None
 
     # AI PROVIDER SELECTOR
-    AI_PROVIDER: str = "deepseek"   # Choose a valid model: "deepseek", "gemini"
+    AI_PROVIDER: str = "groq"   # Valid values: "deepseek", "gemini", "groq"
 
     class Config:
         env_file = ".env"

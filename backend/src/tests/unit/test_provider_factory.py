@@ -8,7 +8,6 @@ os.environ.setdefault("GEMINI_API_KEY", "fake-gemini-key")
 from backend.src.core.ai.provider_factory import get_ai_provider
 from backend.src.core.ai.deepseek_provider import DeepSeekProvider
 from backend.src.core.ai.gemini_provider import GeminiProvider
-from google import genai
 
 
 def test_get_ai_provider_returns_deepseek():
