@@ -22,6 +22,9 @@ class Settings(BaseSettings):
     # GEMINI
     GEMINI_API_KEY: Optional[str] = None
 
+    # DEEPSEEK
+    DEEPSEEK_API_KEY: Optional[str] = None
+
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"

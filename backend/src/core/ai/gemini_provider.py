@@ -12,8 +12,8 @@ class GeminiProvider(AIProvider):
         if not api_key:
             raise ValueError("The Gemini API key was not found.")
 
-        self.client = genai.Client(api_key)
-        self.gemini_model = "gemini-1.5-flash"
+        self.client = genai.Client(api_key=api_key)
+        self.gemini_model = "gemini-2.0-flash-lite"
 
     def _call_model(self, prompt: str, config=None) -> str:
         response = self.client.models.generate_content(
