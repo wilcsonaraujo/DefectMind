@@ -25,6 +25,9 @@ class Settings(BaseSettings):
     # DEEPSEEK
     DEEPSEEK_API_KEY: Optional[str] = None
 
+    # GROQ
+    GROQ_API_KEY: Optional[str] = None
+
     # AI PROVIDER SELECTOR
     AI_PROVIDER: str = "deepseek"   # Choose a valid model: "deepseek", "gemini"
 
