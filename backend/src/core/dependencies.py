@@ -4,10 +4,12 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError
 from sqlalchemy.orm import Session
+from functools import lru_cache
 
 from backend.src.core.database import get_db
 from backend.src.core.security import decode_access_token
 from backend.src.models.user import User
+from backend.src.core.embeddings.embedding_service import EmbeddingService
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
@@ -35,3 +37,7 @@ def get_current_user(
         raise credentials_exception
 
     return user
+
+@lru_cache(maxsize=1)
+def get_embedding_service() -> EmbeddingService:
+    return EmbeddingService()

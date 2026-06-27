@@ -16,5 +16,5 @@ def get_ai_provider() -> AIProvider:
         return GroqProvider(api_key=settings.GROQ_API_KEY)
     else:
         raise ValueError(
-            f"AI provider '{ai_provider}' is not supported. Valid values: 'deepseek', 'gemini', 'manus'."
+            f"AI provider '{ai_provider}' is not supported. Valid values: 'deepseek', 'gemini', 'groq'."
         )
