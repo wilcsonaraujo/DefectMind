@@ -1,5 +1,5 @@
-from unittest.mock import MagicMock, call
-import pytest
+from unittest.mock import MagicMock, call # noqa: F401
+import pytest # noqa: F401
 
 from backend.src.core.neo4j_indexes import create_vector_indexes
 
