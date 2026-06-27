@@ -75,3 +75,8 @@ class DataForgeOutput(BaseModel):
     bug_reports: List[BugReport]
     incidents: List[Incident]
     postmortems: List[PostMortem]
+
+
+class GenerateRequest(BaseModel):
+    num_stories: int = 20
+    batch_size: int = 5
