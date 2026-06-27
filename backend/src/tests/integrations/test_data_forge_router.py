@@ -68,18 +68,16 @@ def test_generate_success():
         MockService.return_value = mock_instance
 
         with patch(
-            "backend.src.modules.data_forge.router.GeminiProvider"
-        ) as MockProvider:
-            MockProvider.return_value = MagicMock()
+            "backend.src.modules.data_forge.router.get_ai_provider"
+        ) as MockFactory:
+            MockFactory.return_value = MagicMock()
 
-            # Use a valid token — replace with the project's actual authentication flow.
             response = client.post(
                 "/data-forge/generate",
                 json={"num_stories": 5, "batch_size": 5},
                 headers={"Authorization": "Bearer valid-token"},
             )
 
-    # With the service mocked, the result depends on authentication being successful.
     assert response.status_code in (200, 401)
     if response.status_code == 200:
         data = response.json()
