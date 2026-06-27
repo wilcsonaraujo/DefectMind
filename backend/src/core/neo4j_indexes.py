@@ -1,7 +1,5 @@
 import logging
 
-from neo4j import GraphDatabase
-
 
 def create_vector_indexes(session):
 
@@ -38,15 +36,14 @@ def create_vector_indexes(session):
         },
     ]
 
-    with session() as session:
-        for index_name, label, property_name in entities:
-            index_query = f"""
-            CREATE VECTOR INDEX {index_name} IF NOT EXISTS
-            FOR ({label}) ON ({property_name})
+    for entity in entities:
+        index_query = f"""
+            CREATE VECTOR INDEX {entity['index_name']} IF NOT EXISTS
+            FOR ({entity['label']}) ON ({entity['property_name']})
             OPTIONS {{indexConfig: {{`vector.dimensions`: 384, `vector.similarity_function`: 'cosine'}}}}
             """
-            try:
-                session.run(index_query)
-                logging.info(f"Index {index_name} created for {label}")
-            except Exception as e:
-                logging.error(f"Error creating index {index_name}: {e}")
+        try:
+            session.run(index_query)
+            logging.info(f"Index {entity['index_name']} created for {entity['label']}")
+        except Exception as e:
+            logging.error(f"Error creating index {entity['index_name']}: {e}")
