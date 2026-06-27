@@ -1,7 +1,17 @@
 from datetime import datetime
 from enum import Enum
 import uuid
-from pydantic import BaseModel
+import neo4j
+from pydantic import BaseModel, field_validator
+
+
+class BaseResponse(BaseModel):
+    @field_validator("created_at", mode="before", check_fields=False)
+    @classmethod
+    def parse_datetime(cls, v):
+        if isinstance(v, neo4j.time.DateTime):
+            return v.to_native()
+        return v
 
 
 class StoryRequest(BaseModel):
@@ -9,23 +19,25 @@ class StoryRequest(BaseModel):
     description: str
 
 
-class StoryResponse(BaseModel):
+class StoryResponse(BaseResponse):
     id: uuid.UUID
     title: str
     description: str
     created_at: datetime
+
 
 class PriorityEnum(str, Enum):
     LOW = "Low"
     MEDIUM = "Medium"
     HIGH = "High"
 
+
 class RequirementRequest(BaseModel):
     description: str
     priority: PriorityEnum
 
 
-class RequirementResponse(BaseModel):
+class RequirementResponse(BaseResponse):
     id: uuid.UUID
     description: str
     priority: PriorityEnum
@@ -38,7 +50,7 @@ class TestCaseRequest(BaseModel):
     expected_result: str
 
 
-class TestCaseResponse(BaseModel):
+class TestCaseResponse(BaseResponse):
     id: uuid.UUID
     title: str
     steps: str
@@ -59,7 +71,7 @@ class BugReportRequest(BaseModel):
     severity: SeverityEnum
 
 
-class BugReportResponse(BaseModel):
+class BugReportResponse(BaseResponse):
     id: uuid.UUID
     title: str
     description: str
@@ -80,7 +92,7 @@ class IncidentRequest(BaseModel):
     impact: ImpactEnum
 
 
-class IncidentResponse(BaseModel):
+class IncidentResponse(BaseResponse):
     id: uuid.UUID
     title: str
     description: str
@@ -94,12 +106,13 @@ class PostMortemRequest(BaseModel):
     lessons_learned: str
 
 
-class PostMortemResponse(BaseModel):
+class PostMortemResponse(BaseResponse):
     id: uuid.UUID
     root_cause: str
     resolution: str
     lessons_learned: str
     created_at: datetime
+
 
 class RelationshipRequest(BaseModel):
     message: str

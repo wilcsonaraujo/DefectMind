@@ -1,10 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
-from backend.src.core.config import settings
 from backend.src.core.dependencies import get_current_user
 from backend.src.core.neo4j_db import get_neo4j_session
 from backend.src.models.user import User
 from backend.src.modules.data_forge.schemas import GenerateRequest
-from backend.src.core.ai.gemini_provider import GeminiProvider
+from backend.src.core.ai.provider_factory import get_ai_provider
 from backend.src.modules.data_forge.service import DataForgeService
 
 router = APIRouter()
@@ -17,10 +16,9 @@ router = APIRouter()
 def generate_data(
     generate: GenerateRequest,
     neo4j=Depends(get_neo4j_session),
-    current_user: User = Depends(get_current_user),
-    gemini_key: str = settings.GEMINI_API_KEY,
+    current_user: User = Depends(get_current_user)
 ):
-    provider = GeminiProvider(api_key=gemini_key)
+    provider = get_ai_provider()
     service = DataForgeService(ai_provider=provider, neo4j_session=neo4j)
 
     if generate.num_stories < 0:

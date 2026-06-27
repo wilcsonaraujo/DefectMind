@@ -25,6 +25,12 @@ class Settings(BaseSettings):
     # DEEPSEEK
     DEEPSEEK_API_KEY: Optional[str] = None
 
+    # GROQ
+    GROQ_API_KEY: Optional[str] = None
+
+    # AI PROVIDER SELECTOR
+    AI_PROVIDER: str = "groq"   # Valid values: "deepseek", "gemini", "groq"
+
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"

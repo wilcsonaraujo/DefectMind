@@ -15,7 +15,7 @@ class DataForgeService:
         self.db = neo4j_session
 
     def _insert_batch(self, batch: DataForgeOutput):
-        now = datetime.now(timezone.utc)
+        created_at = datetime.now(timezone.utc).isoformat()
 
         story_id_map = {s.temp_id: str(uuid.uuid4()) for s in batch.stories}
         requirement_id_map = {r.temp_id: str(uuid.uuid4()) for r in batch.requirements}
@@ -49,7 +49,7 @@ class DataForgeService:
                 id=uuid_real,
                 title=story.title,
                 description=story.description,
-                created_at=now,
+                created_at=created_at,
             )
         for requirement in batch.requirements:
             uuid_real = requirement_id_map[requirement.temp_id]
@@ -58,7 +58,7 @@ class DataForgeService:
                 id=uuid_real,
                 description=requirement.description,
                 priority=requirement.priority.value,
-                created_at=now,
+                created_at=created_at,
             )
         for testcase in batch.testcases:
             uuid_real = testcase_id_map[testcase.temp_id]
@@ -68,7 +68,7 @@ class DataForgeService:
                 title=testcase.title,
                 steps=testcase.steps,
                 expected_result=testcase.expected_result,
-                created_at=now,
+                created_at=created_at,
             )
         for bug_report in batch.bug_reports:
             uuid_real = bugreport_id_map[bug_report.temp_id]
@@ -78,7 +78,7 @@ class DataForgeService:
                 title=bug_report.title,
                 description=bug_report.description,
                 severity=bug_report.severity.value,
-                created_at=now,
+                created_at=created_at,
             )
         for incident in batch.incidents:
             uuid_real = incident_id_map[incident.temp_id]
@@ -88,7 +88,7 @@ class DataForgeService:
                 title=incident.title,
                 description=incident.description,
                 impact=incident.impact.value,
-                created_at=now,
+                created_at=created_at,
             )
         for postmortem in batch.postmortems:
             uuid_real = postmortems_id_map[postmortem.temp_id]
@@ -98,7 +98,7 @@ class DataForgeService:
                 root_cause=postmortem.root_cause,
                 resolution=postmortem.resolution,
                 lessons_learned=postmortem.lessons_learned,
-                created_at=now,
+                created_at=created_at,
             )
 
         for requirement in batch.requirements:
