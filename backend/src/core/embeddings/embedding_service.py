@@ -5,8 +5,6 @@ class EmbeddingService:
     def __init__(self):
         self.model = SentenceTransformer("all-MiniLM-L6-v2")
 
-    sentence = []
-
     # Calculate embeddings by calling model.encode()
     def encode(self, text: str) -> list[float]:
         return self.model.encode(text).tolist()
