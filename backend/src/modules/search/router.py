@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from backend.src.core.dependencies import get_current_user, get_embedding_service
 from backend.src.core.neo4j_db import get_neo4j_session
 from backend.src.models.user import User
-from backend.src.modules.search.schema import (
+from backend.src.modules.search.schemas import (
     SemanticSearchRequest,
     SemanticSearchResponse,
 )
@@ -12,7 +12,7 @@ router = APIRouter()
 
 
 @router.post(
-    "/search/semantic", response_model=SemanticSearchResponse, summary="Semantic search"
+    "/semantic", response_model=SemanticSearchResponse, summary="Semantic search"
 )
 def semanticSearchService(
     request: SemanticSearchRequest,

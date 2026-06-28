@@ -1,5 +1,5 @@
 from backend.src.core.embeddings.embedding_service import EmbeddingService
-from backend.src.modules.search.schema import SearchResult
+from backend.src.modules.search.schemas import SearchResult
 
 index_label = {
     "Story": "story_embedding_index",
