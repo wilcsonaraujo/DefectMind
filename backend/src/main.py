@@ -7,6 +7,7 @@ from backend.src.modules.auth.router import router as auth_router
 from backend.src.modules.users.router import router as users_router
 from backend.src.modules.artifacts.router import router as artifacts_router
 from backend.src.modules.data_forge.router import router as data_forge
+from backend.src.modules.search.router import router as search_router
 
 
 @asynccontextmanager
@@ -36,3 +37,4 @@ app.include_router(auth_router, tags=["Auth"])
 app.include_router(users_router, prefix="/api/v1", tags=["Users"])
 app.include_router(artifacts_router, prefix="/api/v1", tags=["Artifacts"])
 app.include_router(data_forge, prefix="/data-forge", tags=["Data Forge"])
+app.include_router(search_router, prefix="/api/v1", tags=["Search"])
