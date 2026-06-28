@@ -4,16 +4,19 @@ import uuid
 
 from pydantic import ValidationError
 from backend.src.core.ai.provider import AIProvider
-from backend.src.core.embeddings.embedding_service import EmbeddingService as embedding
+from backend.src.core.embeddings.embedding_service import EmbeddingService
 from backend.src.modules.data_forge.prompts import build_prompt
 from backend.src.modules.data_forge.schemas import DataForgeOutput
 
 
 class DataForgeService:
 
-    def __init__(self, ai_provider: AIProvider, neo4j_session):
+    def __init__(
+        self, ai_provider: AIProvider, neo4j_session, embedding: EmbeddingService
+    ):
         self.ai = ai_provider
         self.db = neo4j_session
+        self.embedding = embedding
 
     def _insert_batch(self, batch: DataForgeOutput):
         created_at = datetime.now(timezone.utc).isoformat()
@@ -51,9 +54,7 @@ class DataForgeService:
                 id=uuid_real,
                 title=story.title,
                 description=story.description,
-                embedding=embedding.encode(
-                    story.title.concat(" ").concat(story.description)
-                ),
+                embedding=self.embedding.encode(f"{story.title} {story.description}"),
                 created_at=created_at,
             )
         for requirement in batch.requirements:
@@ -63,9 +64,7 @@ class DataForgeService:
                 id=uuid_real,
                 description=requirement.description,
                 priority=requirement.priority.value,
-                embedding=embedding.encode(
-                    requirement.title.concat(" ").concat(requirement.description)
-                ),
+                embedding=self.embedding.encode(requirement.description),
                 created_at=created_at,
             )
         for testcase in batch.testcases:
@@ -76,11 +75,8 @@ class DataForgeService:
                 title=testcase.title,
                 steps=testcase.steps,
                 expected_result=testcase.expected_result,
-                embedding=embedding.encode(
-                    testcase.title.concat(" ")
-                    .concat(testcase.steps)
-                    .concat(" ")
-                    .concat(testcase.expected_result)
+                embedding=self.embedding.encode(
+                    f"{testcase.title} {testcase.steps} {testcase.expected_result}"
                 ),
                 created_at=created_at,
             )
@@ -92,8 +88,8 @@ class DataForgeService:
                 title=bug_report.title,
                 description=bug_report.description,
                 severity=bug_report.severity.value,
-                embedding=embedding.encode(
-                    bug_report.title.concat(" ").concat(bug_report.description)
+                embedding=self.embedding.encode(
+                    f"{bug_report.title} {bug_report.description}"
                 ),
                 created_at=created_at,
             )
@@ -105,8 +101,8 @@ class DataForgeService:
                 title=incident.title,
                 description=incident.description,
                 impact=incident.impact.value,
-                embedding=embedding.encode(
-                    incident.title.concat(" ").concat(incident.description)
+                embedding=self.embedding.encode(
+                    f"{incident.title} {incident.description}"
                 ),
                 created_at=created_at,
             )
@@ -118,11 +114,8 @@ class DataForgeService:
                 root_cause=postmortem.root_cause,
                 resolution=postmortem.resolution,
                 lessons_learned=postmortem.lessons_learned,
-                embedding=embedding.encode(
-                    postmortem.title.concat(" ")
-                    .concat(postmortem.lessons_learned)
-                    .concat(" ")
-                    .concat(postmortem.root_cause)
+                embedding=self.embedding.encode(
+                    f"{postmortem.lessons_learned} {postmortem.root_cause}"
                 ),
                 created_at=created_at,
             )

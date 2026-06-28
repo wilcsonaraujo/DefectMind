@@ -15,12 +15,12 @@ router = APIRouter()
 )
 def generate_data(
     generate: GenerateRequest,
-    embedding_service = get_embedding_service(),
+    embedding_service = Depends(get_embedding_service()),
     neo4j=Depends(get_neo4j_session),
     current_user: User = Depends(get_current_user)
 ):
     provider = get_ai_provider()
-    service = DataForgeService(ai_provider=provider, neo4j_session=neo4j)
+    service = DataForgeService(ai_provider=provider, neo4j_session=neo4j, embedding_service=embedding_service)
 
     if generate.num_stories < 0:
         raise HTTPException(
