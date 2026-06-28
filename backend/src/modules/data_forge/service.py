@@ -12,11 +12,11 @@ from backend.src.modules.data_forge.schemas import DataForgeOutput
 class DataForgeService:
 
     def __init__(
-        self, ai_provider: AIProvider, neo4j_session, embedding: EmbeddingService
+        self, ai_provider: AIProvider, neo4j_session, embedding_service: EmbeddingService
     ):
         self.ai = ai_provider
         self.db = neo4j_session
-        self.embedding = embedding
+        self.embedding = embedding_service
 
     def _insert_batch(self, batch: DataForgeOutput):
         created_at = datetime.now(timezone.utc).isoformat()

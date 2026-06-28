@@ -44,7 +44,7 @@ def test_generate_calls_embedding_service(service):
     """generate() deve chamar o EmbeddingService para cada entidade do lote."""
     service.generate(num_stories=1, batch_size=1)
     # 6 entidades × 1 lote = pelo menos 6 chamadas ao encode
-    assert service.embedding_svc.encode.call_count >= 6
+    assert service.embedding.encode.call_count >= 6
 
 
 def test_generate_calls_neo4j(service):

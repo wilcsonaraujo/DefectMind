@@ -15,7 +15,7 @@ router = APIRouter()
 )
 def generate_data(
     generate: GenerateRequest,
-    embedding_service = Depends(get_embedding_service()),
+    embedding_service = Depends(get_embedding_service),
     neo4j=Depends(get_neo4j_session),
     current_user: User = Depends(get_current_user)
 ):
