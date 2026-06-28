@@ -4,15 +4,19 @@ import uuid
 
 from pydantic import ValidationError
 from backend.src.core.ai.provider import AIProvider
+from backend.src.core.embeddings.embedding_service import EmbeddingService
 from backend.src.modules.data_forge.prompts import build_prompt
 from backend.src.modules.data_forge.schemas import DataForgeOutput
 
 
 class DataForgeService:
 
-    def __init__(self, ai_provider: AIProvider, neo4j_session):
+    def __init__(
+        self, ai_provider: AIProvider, neo4j_session, embedding_service: EmbeddingService
+    ):
         self.ai = ai_provider
         self.db = neo4j_session
+        self.embedding = embedding_service
 
     def _insert_batch(self, batch: DataForgeOutput):
         created_at = datetime.now(timezone.utc).isoformat()
@@ -25,23 +29,24 @@ class DataForgeService:
         postmortems_id_map = {p.temp_id: str(uuid.uuid4()) for p in batch.postmortems}
 
         stories_query = """MERGE (s:Story {id: $id})
-        SET s.title = $title, s.description = $description, s.created_at = $created_at
+        SET s.title = $title, s.description = $description, s.embedding = $embedding, s.created_at = $created_at
         """
         requirements_query = """MERGE (r:Requirement {id: $id})
-        SET r.description = $description, r.priority = $priority, r.created_at = $created_at
+        SET r.description = $description, r.priority = $priority, r.embedding = $embedding, r.created_at = $created_at
         """
         testcases_query = """MERGE (t:TestCase {id: $id})
-        SET t.title = $title, t.steps = $steps, t.expected_result = $expected_result, t.created_at = $created_at
+        SET t.title = $title, t.steps = $steps, t.expected_result = $expected_result, t.embedding = $embedding, t.created_at = $created_at
         """
         bug_reports_query = """MERGE (b:BugReport {id: $id})
-        SET b.title = $title, b.description = $description, b.severity = $severity, b.created_at = $created_at
+        SET b.title = $title, b.description = $description, b.severity = $severity, b.embedding = $embedding, b.created_at = $created_at
         """
         incidents_query = """MERGE (i:Incident {id: $id})
-        SET i.title = $title, i.description = $description, i.impact = $impact, i.created_at = $created_at
+        SET i.title = $title, i.description = $description, i.impact = $impact, i.embedding = $embedding, i.created_at = $created_at
         """
         postmortems_query = """MERGE (p:PostMortem {id: $id})
-        SET p.root_cause = $root_cause, p.resolution = $resolution, p.lessons_learned = $lessons_learned, p.created_at = $created_at
+        SET p.root_cause = $root_cause, p.resolution = $resolution, p.lessons_learned = $lessons_learned, p.embedding = $embedding, p.created_at = $created_at
         """
+
         for story in batch.stories:
             uuid_real = story_id_map[story.temp_id]
             self.db.run(
@@ -49,6 +54,7 @@ class DataForgeService:
                 id=uuid_real,
                 title=story.title,
                 description=story.description,
+                embedding=self.embedding.encode(f"{story.title} {story.description}"),
                 created_at=created_at,
             )
         for requirement in batch.requirements:
@@ -58,6 +64,7 @@ class DataForgeService:
                 id=uuid_real,
                 description=requirement.description,
                 priority=requirement.priority.value,
+                embedding=self.embedding.encode(requirement.description),
                 created_at=created_at,
             )
         for testcase in batch.testcases:
@@ -68,6 +75,9 @@ class DataForgeService:
                 title=testcase.title,
                 steps=testcase.steps,
                 expected_result=testcase.expected_result,
+                embedding=self.embedding.encode(
+                    f"{testcase.title} {testcase.steps} {testcase.expected_result}"
+                ),
                 created_at=created_at,
             )
         for bug_report in batch.bug_reports:
@@ -78,6 +88,9 @@ class DataForgeService:
                 title=bug_report.title,
                 description=bug_report.description,
                 severity=bug_report.severity.value,
+                embedding=self.embedding.encode(
+                    f"{bug_report.title} {bug_report.description}"
+                ),
                 created_at=created_at,
             )
         for incident in batch.incidents:
@@ -88,6 +101,9 @@ class DataForgeService:
                 title=incident.title,
                 description=incident.description,
                 impact=incident.impact.value,
+                embedding=self.embedding.encode(
+                    f"{incident.title} {incident.description}"
+                ),
                 created_at=created_at,
             )
         for postmortem in batch.postmortems:
@@ -98,6 +114,9 @@ class DataForgeService:
                 root_cause=postmortem.root_cause,
                 resolution=postmortem.resolution,
                 lessons_learned=postmortem.lessons_learned,
+                embedding=self.embedding.encode(
+                    f"{postmortem.lessons_learned} {postmortem.root_cause}"
+                ),
                 created_at=created_at,
             )
 
