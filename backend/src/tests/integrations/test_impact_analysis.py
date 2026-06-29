@@ -6,9 +6,8 @@ from unittest.mock import MagicMock, patch
 def test_impact_requires_auth():
     """Endpoint should be return 401 without JWT token."""
     client = TestClient(app)
-    response = client.post(
-        "/api/v1/search/impact-analysis/qualquer-uuid",
-        json={"text": "Login failed"},
+    response = client.get(
+        "/api/v1/search/impact-analysis/qualquer-uuid"
     )
     assert response.status_code == 401
 
@@ -33,7 +32,7 @@ def test_impact_returns_graph():
         MockService.return_value = mock_instance              # When the router is instanced, receive the mock
 
         response = client.get(
-            "/api/v1/impact-analysis/abc-123",
+            "/api/v1/search/impact-analysis/abc-123",
             headers={"Authorization": "Bearer valid-token"},
         )
 
