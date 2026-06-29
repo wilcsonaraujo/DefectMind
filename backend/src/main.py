@@ -38,3 +38,4 @@ app.include_router(users_router, prefix="/api/v1", tags=["Users"])
 app.include_router(artifacts_router, prefix="/api/v1", tags=["Artifacts"])
 app.include_router(data_forge, prefix="/data-forge", tags=["Data Forge"])
 app.include_router(search_router, prefix="/api/v1/search", tags=["Search"])
+

@@ -1,8 +1,10 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from backend.src.core.dependencies import get_current_user, get_embedding_service
 from backend.src.core.neo4j_db import get_neo4j_session
 from backend.src.models.user import User
+from backend.src.modules.search.impact_analysis_service import ImpactAnalysisService
 from backend.src.modules.search.schemas import (
+    ImpactAnalysisResponse,
     SemanticSearchRequest,
     SemanticSearchResponse,
 )
@@ -27,4 +29,16 @@ def semanticSearchService(
     result = service._search(
         request.request_text, request.filter, request.limit_responses
     )
+    return result
+
+@router.get("/impact-analysis/{node_id}", response_model=ImpactAnalysisResponse, summary="Get the problem consequence between the artifact")
+def impact_analysis_search_service(
+    node_id: str,
+    depth: int = Query(default=5, gt=0, le=10),
+    neo4j=Depends(get_neo4j_session),
+    current_user: User = Depends(get_current_user)    
+):
+    service = ImpactAnalysisService(neo4j_session=neo4j)
+    result = service.get_impact(node_id, depth)
+
     return result

@@ -45,10 +45,10 @@ class SemanticSearchService:
                 self.db.run(query, index_name=index_name, limit=limit, vector=vector)
             )
         else:
-            for filter in index_label.values():
+            for index_name in index_label.values():
                 result.extend(
                     self.db.run(
-                        query, index_name=filter, limit=limit, vector=vector
+                        query, index_name=index_name, limit=limit, vector=vector
                     )
                 )
 
