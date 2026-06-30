@@ -69,6 +69,10 @@ const dict: Dict = {
   "search.subtitle": { pt: "Encontre artefatos relacionados por significado, não apenas palavras-chave", en: "Find related artifacts by meaning, not just keywords" },
   "search.placeholder": { pt: "Descreva o problema em linguagem natural…", en: "Describe the problem in natural language…" },
   "search.button": { pt: "Buscar", en: "Search" },
+  "search.loading": { pt: "Buscando...", en: "Searching..." },
+  "search.filterPlaceholder": { pt: "Filtrar tipo", en: "Filter type" },
+  "search.noResults": { pt: "Nenhum resultado encontrado", en: "No results found" },
+  "search.error": { pt: "Erro ao buscar", en: "Search error" },
   "search.resultsSuffix": { pt: "resultados · ordenados por similaridade", en: "results · sorted by similarity" },
   "search.history": { pt: "Histórico de buscas", en: "Search history" },
 
@@ -194,13 +198,30 @@ const dict: Dict = {
   "t.Conectado": { pt: "Conectado", en: "Connected" },
 };
 
+// Login page
+dict["login.welcome"] = { pt: "Bem-vindo de volta", en: "Welcome back" };
+dict["login.subtitle"] = { pt: "Entre na sua conta para acessar o DefectMind", en: "Sign in to your account to access DefectMind" };
+dict["login.email"] = { pt: "E-mail", en: "Email" };
+dict["login.emailPlaceholder"] = { pt: "voce@empresa.com", en: "you@company.com" };
+dict["login.password"] = { pt: "Senha", en: "Password" };
+dict["login.passwordPlaceholder"] = { pt: "Digite sua senha", en: "Enter your password" };
+dict["login.remember"] = { pt: "Lembrar de mim", en: "Remember me" };
+dict["login.forgot"] = { pt: "Esqueceu a senha?", en: "Forgot password?" };
+dict["login.submit"] = { pt: "Entrar", en: "Sign in" };
+dict["login.submitting"] = { pt: "Entrando…", en: "Signing in…" };
+dict["login.noAccount"] = { pt: "Não tem uma conta?", en: "Don't have an account?" };
+dict["login.requestAccess"] = { pt: "Solicitar acesso", en: "Request access" };
+dict["login.tagline"] = { pt: "Inteligência para QA, orientada por grafos e IA", en: "QA intelligence, powered by graphs and AI" };
+dict["login.error"] = { pt: "Preencha e-mail e senha para continuar.", en: "Enter email and password to continue." };
+
 const LangContext = createContext<{ lang: Lang; setLang: (l: Lang) => void } | null>(null);
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [lang, setLangState] = useState<Lang>("pt");
+  const [lang, setLangState] = useState<Lang>("en");
   useEffect(() => {
     const saved = (typeof localStorage !== "undefined" && localStorage.getItem("dm-lang")) as Lang | null;
     if (saved === "pt" || saved === "en") setLangState(saved);
+    else setLangState("en");
   }, []);
   const setLang = (l: Lang) => {
     setLangState(l);
