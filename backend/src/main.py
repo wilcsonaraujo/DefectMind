@@ -27,13 +27,13 @@ app = FastAPI(title="DefectMind API", lifespan=lifespan)
 # Configuração CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://localhost:3000", "http://localhost:5173"],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["Authorization", "Content-Type"],
 )
 
-app.include_router(auth_router, tags=["Auth"])
+app.include_router(auth_router, prefix="/api/v1", tags=["Auth"])
 app.include_router(users_router, prefix="/api/v1", tags=["Users"])
 app.include_router(artifacts_router, prefix="/api/v1", tags=["Artifacts"])
 app.include_router(data_forge, prefix="/data-forge", tags=["Data Forge"])

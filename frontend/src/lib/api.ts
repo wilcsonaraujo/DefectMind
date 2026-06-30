@@ -25,23 +25,16 @@ export interface LoginResponse {
   token_type: string;
 }
 
-export async function loginUser(payload: LoginRequest ): Promise<LoginResponse> {
-  // O backend FastAPI use OAuth2PasswordRequestForm, that require
-  // application/x-www-form-urlencoded — não JSON.
-  const body = new URLSearchParams();
-  body.append("username", payload.username);
-  body.append("password", payload.password);
-
+export async function loginUser(payload: LoginRequest): Promise<LoginResponse> {
+  const token = typeof localStorage !== "undefined" ? localStorage.getItem("dm-token") : null;
   const response = await fetch(`${API_BASE}/api/v1/auth/login`, {
     method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: body.toString(),
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email: payload.username, password: payload.password }),
   });
-
   if (!response.ok) {
     throw new Error("Credenciais inválidas. Verifique e-mail e senha.");
   }
-
   return response.json();
 }
 
@@ -76,7 +69,9 @@ export async function searchSemantic(
   const response = await fetch(`${API_BASE}/api/v1/search/semantic`, {
     method: "POST",
     headers,
-    body: JSON.stringify(payload),
+    body: JSON.stringify({request_text: payload.text,          
+      filter: payload.filter ?? null,
+      limit_responses: payload.limit_responses ?? 10,}),
   });
 
   if (!response.ok) {

@@ -29,7 +29,7 @@ def semanticSearchService(
     result = service._search(
         request.request_text, request.filter, request.limit_responses
     )
-    return result
+    return SemanticSearchResponse(results=result, total=len(result))
 
 @router.get("/impact-analysis/{node_id}", response_model=ImpactAnalysisResponse, summary="Get the problem consequence between the artifact")
 def impact_analysis_search_service(
