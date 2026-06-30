@@ -24,7 +24,6 @@ node_modules/
 frontend/.output/
 frontend/dist/
 frontend/.vinxi/
-frontend/src/routeTree.gen.ts
 
 # ─── Build genérico ───────────────────────────────────────
 dist/
