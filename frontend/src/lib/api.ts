@@ -1,7 +1,9 @@
 const API_BASE =
   typeof window !== "undefined"
-    ? ((import.meta.env?.VITE_API_URL as string | undefined) ?? "http://localhost:8000")
+    ? ((import.meta.env?.VITE_API_URL as string | undefined) ?? "http://localhost:8000" )
     : "http://backend:8000";
+
+// ─── Tipos de entidade ────────────────────────────────────────────────────────
 
 export type EntityType =
   | "Story"
@@ -10,6 +12,33 @@ export type EntityType =
   | "BugReport"
   | "Incident"
   | "PostMortem";
+
+// ─── Autenticação ─────────────────────────────────────────────────────────────
+
+export interface LoginRequest {
+  username: string;
+  password: string;
+}
+
+export interface LoginResponse {
+  access_token: string;
+  token_type: string;
+}
+
+export async function loginUser(payload: LoginRequest): Promise<LoginResponse> {
+  const token = typeof localStorage !== "undefined" ? localStorage.getItem("dm-token") : null;
+  const response = await fetch(`${API_BASE}/api/v1/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email: payload.username, password: payload.password }),
+  });
+  if (!response.ok) {
+    throw new Error("Credenciais inválidas. Verifique e-mail e senha.");
+  }
+  return response.json();
+}
+
+// ─── Busca semântica ──────────────────────────────────────────────────────────
 
 export interface SearchResult {
   id: string;
@@ -40,7 +69,9 @@ export async function searchSemantic(
   const response = await fetch(`${API_BASE}/api/v1/search/semantic`, {
     method: "POST",
     headers,
-    body: JSON.stringify(payload),
+    body: JSON.stringify({request_text: payload.text,          
+      filter: payload.filter ?? null,
+      limit_responses: payload.limit_responses ?? 10,}),
   });
 
   if (!response.ok) {
