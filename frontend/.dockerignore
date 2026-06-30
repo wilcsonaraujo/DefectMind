@@ -6,7 +6,6 @@ build
 *.log
 .env.local
 .env.*.local
-.output
 .vinxi
 .nitro
 .tanstack
