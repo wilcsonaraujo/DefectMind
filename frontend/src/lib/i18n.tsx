@@ -69,6 +69,10 @@ const dict: Dict = {
   "search.subtitle": { pt: "Encontre artefatos relacionados por significado, não apenas palavras-chave", en: "Find related artifacts by meaning, not just keywords" },
   "search.placeholder": { pt: "Descreva o problema em linguagem natural…", en: "Describe the problem in natural language…" },
   "search.button": { pt: "Buscar", en: "Search" },
+  "search.loading": { pt: "Buscando...", en: "Searching..." },
+  "search.filterPlaceholder": { pt: "Filtrar tipo", en: "Filter type" },
+  "search.noResults": { pt: "Nenhum resultado encontrado", en: "No results found" },
+  "search.error": { pt: "Erro ao buscar", en: "Search error" },
   "search.resultsSuffix": { pt: "resultados · ordenados por similaridade", en: "results · sorted by similarity" },
   "search.history": { pt: "Histórico de buscas", en: "Search history" },
 

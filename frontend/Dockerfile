@@ -1,5 +1,4 @@
-FROM node:20-slim AS builder
-
+FROM node:22-slim AS builder
 WORKDIR /app
 
 # Install dependencies
@@ -11,7 +10,7 @@ COPY frontend/ .
 RUN npm run build
 
 # Runtime
-FROM node:20-slim
+FROM node:22-slim
 
 WORKDIR /app
 
