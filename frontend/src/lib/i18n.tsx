@@ -22,6 +22,7 @@ const dict: Dict = {
   "nav.artifacts": { pt: "Artefatos", en: "Artifacts" },
   "nav.artifacts.sub": { pt: "Gerenciar entidades", en: "Manage entities" },
   "nav.users": { pt: "Usuários", en: "Users" },
+  "nav.logout": { pt: "Sair", en: "Logout" },
   "nav.settings": { pt: "Configurações", en: "Settings" },
   "nav.environments": { pt: "Ambientes", en: "Environments" },
   "status.environment": { pt: "Ambiente", en: "Environment" },

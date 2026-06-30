@@ -1,4 +1,4 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { useState, type ReactNode } from "react";
 import {
   LayoutDashboard,
@@ -14,7 +14,7 @@ import {
   Menu,
   X,
   BrainCircuit,
-  MoreVertical,
+  LogOut,
   Languages,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -27,6 +27,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useLang } from "@/lib/i18n";
+import { getUserFromToken, logout } from "@/hooks/use-auth";
 
 const navMain = [
   { to: "/", key: "nav.dashboard", subKey: "nav.dashboard.sub", icon: LayoutDashboard },
@@ -45,8 +46,21 @@ const navConfig = [
 
 function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const navigate = useNavigate();
   const { t } = useLang();
   const isActive = (to: string) => (to === "/" ? pathname === "/" : pathname.startsWith(to));
+
+  // Extrair dados do usuário logado a partir do JWT
+  const user = getUserFromToken();
+  const displayName = user?.name ?? "Usuário";
+  const displayEmail = user?.email ?? "";
+  const initials = displayName
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+
   return (
     <div className="flex h-full flex-col">
       <div className="flex h-20 items-center gap-2.5 px-5">
@@ -58,7 +72,6 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
           <p className="truncate text-[11px] text-muted-foreground">{t("tagline")}</p>
         </div>
       </div>
-
       <nav className="flex-1 overflow-y-auto px-3 py-2">
         <p className="px-3 pb-2 pt-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
           {t("nav.navigation")}
@@ -89,7 +102,6 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
             );
           })}
         </div>
-
         <p className="px-3 pb-2 pt-5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
           {t("nav.config")}
         </p>
@@ -115,17 +127,23 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
           })}
         </div>
       </nav>
-
+      {/* Footer do sidebar: dados do usuário + botão de logout */}
       <div className="border-t border-sidebar-border p-3">
         <div className="flex items-center gap-3 rounded-lg px-2 py-2">
           <Avatar className="h-8 w-8">
-            <AvatarFallback className="bg-primary/20 text-xs text-primary">AD</AvatarFallback>
+            <AvatarFallback className="bg-primary/20 text-xs text-primary">{initials}</AvatarFallback>
           </Avatar>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium text-sidebar-foreground">Admin</p>
-            <p className="truncate text-[11px] text-muted-foreground">admin@defectmind.dev</p>
+            <p className="truncate text-sm font-medium text-sidebar-foreground">{displayName}</p>
+            <p className="truncate text-[11px] text-muted-foreground">{displayEmail}</p>
           </div>
-          <MoreVertical className="h-4 w-4 shrink-0 text-muted-foreground" />
+          <button
+            onClick={() => logout(navigate)}
+            title={t("nav.logout")}
+            className="shrink-0 rounded-md p-1 text-muted-foreground transition-colors hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
+          >
+            <LogOut className="h-4 w-4" />
+          </button>
         </div>
       </div>
     </div>
@@ -156,12 +174,21 @@ export function AppLayout({
 }) {
   const [open, setOpen] = useState(false);
   const { t, lang, setLang } = useLang();
+
+  // Dados do usuário para o avatar do header
+  const user = getUserFromToken();
+  const initials = (user?.name ?? "U")
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+
   return (
     <div className="min-h-screen w-full bg-background text-foreground">
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 border-r border-sidebar-border bg-sidebar lg:block">
         <SidebarContent />
       </aside>
-
       {open && (
         <div className="fixed inset-0 z-50 lg:hidden">
           <div className="absolute inset-0 bg-black/60" onClick={() => setOpen(false)} />
@@ -176,7 +203,6 @@ export function AppLayout({
           </aside>
         </div>
       )}
-
       <div className="lg:pl-64">
         <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur">
           <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-4 py-3 sm:px-6">
@@ -212,12 +238,11 @@ export function AppLayout({
                 <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-primary" />
               </Button>
               <Avatar className="h-9 w-9">
-                <AvatarFallback className="bg-primary/20 text-xs text-primary">AD</AvatarFallback>
+                <AvatarFallback className="bg-primary/20 text-xs text-primary">{initials}</AvatarFallback>
               </Avatar>
             </div>
           </div>
         </header>
-
         <main className="px-4 py-6 sm:px-6 lg:px-8">
           <div className="mb-6 grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4">
             <div className="min-w-0">

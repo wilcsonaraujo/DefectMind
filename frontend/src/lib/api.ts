@@ -1,7 +1,9 @@
 const API_BASE =
   typeof window !== "undefined"
-    ? ((import.meta.env?.VITE_API_URL as string | undefined) ?? "http://localhost:8000")
+    ? ((import.meta.env?.VITE_API_URL as string | undefined) ?? "http://localhost:8000" )
     : "http://backend:8000";
+
+// ─── Tipos de entidade ────────────────────────────────────────────────────────
 
 export type EntityType =
   | "Story"
@@ -10,6 +12,40 @@ export type EntityType =
   | "BugReport"
   | "Incident"
   | "PostMortem";
+
+// ─── Autenticação ─────────────────────────────────────────────────────────────
+
+export interface LoginRequest {
+  username: string;
+  password: string;
+}
+
+export interface LoginResponse {
+  access_token: string;
+  token_type: string;
+}
+
+export async function loginUser(payload: LoginRequest ): Promise<LoginResponse> {
+  // O backend FastAPI use OAuth2PasswordRequestForm, that require
+  // application/x-www-form-urlencoded — não JSON.
+  const body = new URLSearchParams();
+  body.append("username", payload.username);
+  body.append("password", payload.password);
+
+  const response = await fetch(`${API_BASE}/api/v1/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: body.toString(),
+  });
+
+  if (!response.ok) {
+    throw new Error("Credenciais inválidas. Verifique e-mail e senha.");
+  }
+
+  return response.json();
+}
+
+// ─── Busca semântica ──────────────────────────────────────────────────────────
 
 export interface SearchResult {
   id: string;
