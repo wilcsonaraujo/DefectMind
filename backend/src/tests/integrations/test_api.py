@@ -1,10 +1,10 @@
 class TestHealth:
     def test_health_returns_200(self, client):
-        response = client.get("/health")
+        response = client.get("/api/v1/health")
         assert response.status_code == 200
 
     def test_health_response_body(self, client):
-        response = client.get("/health")
+        response = client.get("/api/v1/health")
         data = response.json()
         assert data["status"] == "healthy"
         assert data["database"] == "connected"
@@ -15,7 +15,7 @@ class TestHealth:
 class TestRegister:
     def test_register_success(self, client):
         response = client.post(
-            "/auth/register",
+            "/api/v1/auth/register",
             json={
                 "email": "test@defectmind.com",
                 "password": "MinhaSenh@123",
@@ -34,13 +34,13 @@ class TestRegister:
             "password": "MinhaSenh@123",
             "role": "viewer",
         }
-        client.post("/auth/register", json=payload)
-        response = client.post("/auth/register", json=payload)
+        client.post("/api/v1/auth/register", json=payload)
+        response = client.post("/api/v1/auth/register", json=payload)
         assert response.status_code == 409
 
     def test_register_invalid_email_returns_422(self, client):
         response = client.post(
-            "/auth/register",
+            "/api/v1/auth/register",
             json={
                 "email": "nao-e-um-email",
                 "password": "MinhaSenh@123",
@@ -53,7 +53,7 @@ class TestRegister:
 class TestLogin:
     def test_login_success_returns_token(self, client):
         client.post(
-            "/auth/register",
+            "/api/v1/auth/register",
             json={
                 "email": "login@defectmind.com",
                 "password": "MinhaSenh@123",
@@ -61,7 +61,7 @@ class TestLogin:
             },
         )
         response = client.post(
-            "/auth/login",
+            "/api/v1/auth/login",
             json={"email": "login@defectmind.com", "password": "MinhaSenh@123"},
         )
         assert response.status_code == 200
@@ -71,7 +71,7 @@ class TestLogin:
 
     def test_login_wrong_password_returns_401(self, client):
         client.post(
-            "/auth/register",
+            "/api/v1/auth/register",
             json={
                 "email": "wrong@defectmind.com",
                 "password": "MinhaSenh@123",
@@ -79,14 +79,14 @@ class TestLogin:
             },
         )
         response = client.post(
-            "/auth/login",
+            "/api/v1/auth/login",
             json={"email": "wrong@defectmind.com", "password": "SenhaErrada"},
         )
         assert response.status_code == 401
 
     def test_login_nonexistent_user_returns_401(self, client):
         response = client.post(
-            "/auth/login",
+            "/api/v1/auth/login",
             json={"email": "naoexiste@defectmind.com", "password": "MinhaSenh@123"},
         )
         assert response.status_code == 401
@@ -107,18 +107,18 @@ class TestUsers:
 
 class TestAuthMe:
     def test_me_without_token_returns_401(self, client):
-        response = client.get("/auth/me")
+        response = client.get("/api/v1/auth/me")
         assert response.status_code == 401
 
     def test_me_with_invalid_token_returns_401(self, client):
         response = client.get(
-            "/auth/me", headers={"Authorization": "Bearer token_invalido"}
+            "/api/v1/auth/me", headers={"Authorization": "Bearer token_invalido"}
         )
         assert response.status_code == 401
 
     def test_me_with_valid_token_returns_user(self, client):
         client.post(
-            "/auth/register",
+            "/api/v1/auth/register",
             json={
                 "email": "me@defectmind.com",
                 "password": "MinhaSenh@123",
@@ -126,11 +126,11 @@ class TestAuthMe:
             },
         )
         login = client.post(
-            "/auth/login",
+            "/api/v1/auth/login",
             json={"email": "me@defectmind.com", "password": "MinhaSenh@123"},
         )
         token = login.json()["access_token"]
-        response = client.get("/auth/me", headers={"Authorization": f"Bearer {token}"})
+        response = client.get("/api/v1/auth/me", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code == 200
         assert response.json()["email"] == "me@defectmind.com"
 
@@ -138,7 +138,7 @@ class TestAuthMe:
 class TestArtifacts:
     def _get_token(self, client) -> str:
         client.post(
-            "/auth/register",
+            "/api/v1/auth/register",
             json={
                 "email": "artifacts@defectmind.com",
                 "password": "MinhaSenh@123",
@@ -146,7 +146,7 @@ class TestArtifacts:
             },
         )
         response = client.post(
-            "/auth/login",
+            "/api/v1/auth/login",
             json={
                 "email": "artifacts@defectmind.com",
                 "password": "MinhaSenh@123",
