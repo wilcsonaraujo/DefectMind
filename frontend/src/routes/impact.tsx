@@ -195,7 +195,7 @@ function ImpactPage() {
           id: `e-${i}`,
           source: e.source,
           target: e.target,
-          label: e.relation,
+          label: e.type,
           labelStyle: { fontSize: "9px", fill: "#94a3b8" },
           labelBgStyle: { fill: "#0f172a", fillOpacity: 0.8 },
           style: { stroke: "#475569", strokeWidth: 1.5 },

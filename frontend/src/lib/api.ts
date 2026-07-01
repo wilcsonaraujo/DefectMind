@@ -88,7 +88,7 @@ export interface ImpactNode {
 export interface ImpactEdge {
   source: string;
   target: string;
-  relation: string;
+  type: string;
 }
 
 export interface ImpactAnalysisResponse {

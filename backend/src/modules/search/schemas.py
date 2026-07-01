@@ -40,7 +40,7 @@ class SemanticSearchResponse(BaseModel):
 
 class ImpactNode(BaseModel):
     id: str
-    label: TypeEnum
+    label: str
     properties: dict[str, Any]
 
 
