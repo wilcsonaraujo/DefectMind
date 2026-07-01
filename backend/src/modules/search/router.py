@@ -56,5 +56,5 @@ def graph_stats_service(
     neo4j=Depends(get_neo4j_session), current_user: User = Depends(get_current_user)
 ):
     service = GraphService(neo4j_session=neo4j)
-    result = service.get_graph_stats()
+    result = service._get_graph_stats()
     return StatsResponse(**result)

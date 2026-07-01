@@ -89,8 +89,8 @@ const dict: Dict = {
   "impact.impactPrefix": { pt: "impacto", en: "impact" },
 
   // Graph page
-  "graph.title": { pt: "Explorador de Grafo", en: "Graph Explorer" },
-  "graph.subtitle": { pt: "Visualização interativa das relações entre artefatos (simulado)", en: "Interactive visualization of artifact relations (simulated)" },
+  "graph.title": { pt: "Estatísticas do Grafo", en: "Graph Statistics" },
+  "graph.subtitle": { pt: "Métricas e análise do grafo de conhecimento de artefatos", en: "Metrics and analysis of the artifact knowledge graph" },
   "graph.legend": { pt: "Legenda", en: "Legend" },
   "graph.nodeDetails": { pt: "Detalhes do Nó", en: "Node Details" },
   "graph.relations": { pt: "relações no grafo", en: "relations in the graph" },
