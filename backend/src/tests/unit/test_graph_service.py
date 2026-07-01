@@ -1,5 +1,5 @@
 import pytest
-from unittest.mock import MagicMock, call
+from unittest.mock import MagicMock, call # noqa: F401
 from backend.src.modules.search.graph import GraphService
 from backend.src.modules.search.schemas import NodeByType
 
