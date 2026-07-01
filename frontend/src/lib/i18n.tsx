@@ -79,8 +79,8 @@ const dict: Dict = {
 
   // Impact page
   "impact.title": { pt: "Análise de Impacto", en: "Impact Analysis" },
-  "impact.subtitle": { pt: "Entenda o raio de impacto de uma story no seu grafo", en: "Understand the blast radius of a story across your graph" },
-  "impact.selectStory": { pt: "Selecione uma Story", en: "Select a Story" },
+  "impact.subtitle": { pt: "Visualize o grafo de relações de um artefato", en: "Visualize the relationship graph of an artifact" },
+  "impact.selectStory": { pt: "ID do artefato", en: "Artifact ID" },
   "impact.bugs": { pt: "Bugs", en: "Bugs" },
   "impact.incidents": { pt: "Incidentes", en: "Incidents" },
   "impact.riskAreas": { pt: "Áreas de Risco", en: "Risk Areas" },
