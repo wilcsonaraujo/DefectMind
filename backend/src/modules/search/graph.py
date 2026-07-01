@@ -29,7 +29,7 @@ class GraphService:
                 setattr(nodes_by_type, label, count)
         return nodes_by_type
 
-    def _get_most_connected_nodes(self, limit: int = 10):
+    def _get_most_connected_nodes(self, limit = 10):
         query = """
         MATCH (n)-[r]->()
         RETURN n.id AS id, labels(n)[0] AS label, n.title AS title, count(r) AS degree
