@@ -33,12 +33,14 @@ class PriorityEnum(str, Enum):
 
 
 class RequirementRequest(BaseModel):
+    title: str
     description: str
     priority: PriorityEnum
 
 
 class RequirementResponse(BaseResponse):
     id: uuid.UUID
+    title: str
     description: str
     priority: PriorityEnum
     created_at: datetime
@@ -101,6 +103,7 @@ class IncidentResponse(BaseResponse):
 
 
 class PostMortemRequest(BaseModel):
+    title: str
     root_cause: str
     resolution: str
     lessons_learned: str
@@ -108,6 +111,7 @@ class PostMortemRequest(BaseModel):
 
 class PostMortemResponse(BaseResponse):
     id: uuid.UUID
+    title: str
     root_cause: str
     resolution: str
     lessons_learned: str
