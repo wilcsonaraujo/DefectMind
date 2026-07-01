@@ -14,10 +14,10 @@ class TypeEnum(str, Enum):
 
 class RelationTypeEnum(str, Enum):
     HAS_REQUIREMENT = "HAS_REQUIREMENT"
-    HAS_TESTCASE = "HAS_TESTCASE"
-    FOUND_BUG = "FOUND_BUG"
-    CAUSED_INCIDENT = "CAUSED_INCIDENT"
-    HAS_POSTMORTEM = "HAS_POSTMORTEM"
+    HAS_TESTCASE = "COVERED_BY"
+    FOUND = "FOUND"
+    CAUSED_INCIDENT = "CAUSED"
+    HAS_POSTMORTEM = "ROOT_CAUSE"
 
 
 class SemanticSearchRequest(BaseModel):
@@ -40,7 +40,7 @@ class SemanticSearchResponse(BaseModel):
 
 class ImpactNode(BaseModel):
     id: str
-    label: TypeEnum
+    label: str
     properties: dict[str, Any]
 
 
