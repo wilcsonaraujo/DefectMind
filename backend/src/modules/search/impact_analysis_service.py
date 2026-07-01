@@ -12,9 +12,11 @@ class ImpactAnalysisService:
         self.db = neo4j_session
 
     def get_impact(self, node_id: str, depth: int):
+        if depth < 1:
+            depth = 1
 
-        query = """
-                MATCH (start {id: $node_id})-[r*1..$depth]-(connected)
+        query = f"""
+                MATCH (start {{id: $node_id}})-[r*1..{depth}]-(connected)
                 UNWIND r AS rel
                 RETURN 
                     start,
@@ -33,10 +35,10 @@ class ImpactAnalysisService:
         edges = []
 
         for record in records:
-
             start = record["start"]
+            connected = record["connected"]
             if start["id"] not in nodes_map:
-                label = list(start.labels)[0]
+                label = list(start.labels)[0] if start.labels else "Unknown"
                 props = {k: v for k, v in dict(start).items() if k != "embedding"}
                 nodes_map[start["id"]] = ImpactNode(
                     id=start["id"],
@@ -46,7 +48,13 @@ class ImpactAnalysisService:
 
             connected = record["connected"]
             if connected["id"] not in nodes_map:
-                nodes_map[connected["id"]] = ImpactNode(...)
+                label = list(connected.labels)[0] if connected.labels else "Unknown"
+                props = {k: v for k, v in dict(connected).items() if k != "embedding"}
+                nodes_map[connected["id"]] = ImpactNode(
+                    id=connected["id"],
+                    label=label,
+                    properties=props
+                )
 
             edges.append(
                 ImpactEdge(
