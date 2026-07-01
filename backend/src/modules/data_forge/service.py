@@ -65,7 +65,7 @@ class DataForgeService:
                 title=requirement.title,
                 description=requirement.description,
                 priority=requirement.priority.value,
-                embedding=self.embedding.encode(requirement.description),
+                embedding=self.embedding.encode(f"{requirement.title} {requirement.description}"),
                 created_at=created_at,
             )
         for testcase in batch.testcases:
@@ -117,7 +117,7 @@ class DataForgeService:
                 resolution=postmortem.resolution,
                 lessons_learned=postmortem.lessons_learned,
                 embedding=self.embedding.encode(
-                    f"{postmortem.lessons_learned} {postmortem.root_cause}"
+                    f"{postmortem.title} {postmortem.lessons_learned} {postmortem.root_cause}"
                 ),
                 created_at=created_at,
             )
