@@ -51,19 +51,10 @@ def impact_analysis_search_service(
     return result
 
 
-@router.get("graph-stats", response_model=StatsResponse, summary="Get graph statistics")
+@router.get("/graph-stats", response_model=StatsResponse, summary="Get graph statistics")
 def graph_stats_service(
     neo4j=Depends(get_neo4j_session), current_user: User = Depends(get_current_user)
 ):
     service = GraphService(neo4j_session=neo4j)
-    total_nodes = service._get_total_nodes()
-    total_edges = service._get_total_edges()
-    nodes_by_type = service._get_nodes_by_type()
-    most_connected_nodes = service._get_most_connected_nodes()
-
-    return StatsResponse(
-        total_nodes=total_nodes,
-        total_edges=total_edges,
-        nodes_by_type=nodes_by_type,
-        most_connected_nodes=most_connected_nodes,
-    )
+    result = service.get_graph_stats()
+    return StatsResponse(**result)

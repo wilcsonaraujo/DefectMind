@@ -49,7 +49,7 @@ class GraphService:
             )
         return most_connected_nodes
 
-    def get_isolated_nodes(self):
+    def _get_isolated_nodes(self):
         query = """
         MATCH (n)
         WHERE NOT (n)-[]->() AND NOT ()-[]->(n)
@@ -67,28 +67,28 @@ class GraphService:
             )
         return isolated_nodes
 
-    def get_avg_degree(self):
+    def _get_avg_degree(self):
         total_nodes = self._get_total_nodes()
         total_edges = self._get_total_edges()
         if total_nodes == 0:
             return 0
         return total_edges / total_nodes
 
-    def get_density(self):
+    def _get_density(self):
         total_nodes = self._get_total_nodes()
         total_edges = self._get_total_edges()
         if total_nodes <= 1:
             return 0
         return total_edges / (total_nodes * (total_nodes - 1))
 
-    def get_graph_stats(self):
+    def _get_graph_stats(self):
         total_nodes = self._get_total_nodes()
         total_edges = self._get_total_edges()
         nodes_by_type = self._get_nodes_by_type()
         most_connected_nodes = self._get_most_connected_nodes()
-        isolated_nodes = self.get_isolated_nodes()
-        avg_degree = self.get_avg_degree()
-        density = self.get_density()
+        isolated_nodes = self._get_isolated_nodes()
+        avg_degree = self._get_avg_degree()
+        density = self._get_density()
 
         return {
             "total_nodes": total_nodes,
