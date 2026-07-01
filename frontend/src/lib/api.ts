@@ -61,7 +61,6 @@ export async function searchSemantic(
     typeof localStorage !== "undefined" ? localStorage.getItem("dm-token") : null;
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   if (token) headers["Authorization"] = `Bearer ${token}`;
-
   const response = await fetch(`${API_BASE}/api/v1/search/semantic`, {
     method: "POST",
     headers,
@@ -104,15 +103,62 @@ export async function getImpactAnalysis(
     typeof localStorage !== "undefined" ? localStorage.getItem("dm-token") : null;
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   if (token) headers["Authorization"] = `Bearer ${token}`;
-
   const response = await fetch(
     `${API_BASE}/api/v1/search/impact-analysis/${encodeURIComponent(nodeId)}?depth=${depth}`,
     { method: "GET", headers },
   );
-
   if (!response.ok) {
     const detail = await response.text().catch(() => response.statusText);
     throw new Error(`Erro na análise de impacto (${response.status}): ${detail}`);
+  }
+  return response.json();
+}
+
+// ─── Estatísticas do Grafo ────────────────────────────────────────────────────
+export interface NodeByType {
+  Story: number;
+  Requirement: number;
+  TestCase: number;
+  BugReport: number;
+  Incident: number;
+  PostMortem: number;
+}
+
+export interface ConnectedNode {
+  id: string;
+  label: string;
+  title: string | null;
+  degree: number;
+}
+
+export interface IsolatedNode {
+  id: string;
+  label: string;
+  title: string | null;
+}
+
+export interface GraphStatsResponse {
+  total_nodes: number;
+  total_edges: number;
+  nodes_by_type: NodeByType;
+  most_connected_nodes: ConnectedNode[];
+  isolated_nodes: IsolatedNode[];
+  avg_degree: number;
+  density: number;
+}
+
+export async function getGraphStats(): Promise<GraphStatsResponse> {
+  const token =
+    typeof localStorage !== "undefined" ? localStorage.getItem("dm-token") : null;
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+  const response = await fetch(`${API_BASE}/api/v1/search/graph-stats`, {
+    method: "GET",
+    headers,
+  });
+  if (!response.ok) {
+    const detail = await response.text().catch(() => response.statusText);
+    throw new Error(`Erro ao carregar estatísticas do grafo (${response.status}): ${detail}`);
   }
   return response.json();
 }

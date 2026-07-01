@@ -53,3 +53,32 @@ class ImpactEdge(BaseModel):
 class ImpactAnalysisResponse(BaseModel):
     nodes: list[ImpactNode]
     edges: list[ImpactEdge]
+
+class NodeByType(BaseModel):
+    Story: Optional[int] = 0
+    BugReport: Optional[int] = 0
+    TestCase: Optional[int] = 0
+    Requirement: Optional[int] = 0
+    Incident: Optional[int] = 0
+    PostMortem: Optional[int] = 0
+
+class MostConnectedNode(BaseModel):
+    id: str
+    label: str
+    title: str
+    degree: int
+
+class IsolatedNode(BaseModel):
+    id: str
+    label: str
+    title: str
+
+class StatsResponse(BaseModel):
+    total_nodes: int
+    total_edges: int
+    nodes_by_type: NodeByType
+    most_connected_nodes: list[MostConnectedNode]
+    isolated_nodes: list[IsolatedNode]
+    avg_degree: float
+    density: float
+
