@@ -6,11 +6,11 @@ FAKE_EMBEDDING = [0.1] * 384
 
 FAKE_BATCH = {
     "stories": [{"temp_id": 1, "title": "Login Story", "description": "User login flow"}],
-    "requirements": [{"temp_id": 1, "story_temp_id": 1, "description": "Must validate credentials", "priority": "High"}],
+    "requirements": [{"temp_id": 1, "story_temp_id": 1, "title": "Login requirement", "description": "Must validate credentials", "priority": "High"}],
     "testcases": [{"temp_id": 1, "requirement_temp_id": 1, "title": "Test login", "steps": "Open app", "expected_result": "Logged in"}],
     "bug_reports": [{"temp_id": 1, "testcase_temp_id": 1, "title": "Login fails", "description": "Error on submit", "severity": "High"}],
     "incidents": [{"temp_id": 1, "bug_temp_id": 1, "title": "Prod incident", "description": "Users locked out", "impact": "Critical"}],
-    "postmortems": [{"temp_id": 1, "incident_temp_id": 1, "root_cause": "DB timeout", "resolution": "Scaled DB", "lessons_learned": "Add alerts"}],
+    "postmortems": [{"temp_id": 1, "incident_temp_id": 1, "title": "Postmortem Title", "root_cause": "DB timeout", "resolution": "Scaled DB", "lessons_learned": "Add alerts"}],
 }
 
 

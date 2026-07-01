@@ -116,10 +116,11 @@ def create_requirement(
 ):
     new_id = str(uuid.uuid4())
     created_at = datetime.now(timezone.utc).isoformat()
-    query = """CREATE (r:Requirement {id: $id, description: $description, priority: $priority, created_at: $created_at}) RETURN r"""
+    query = """CREATE (r:Requirement {id: $id, title: $title, description: $description, priority: $priority, created_at: $created_at}) RETURN r"""
     result = neo4j.run(
         query,
         id=new_id,
+        title=requirement.title,
         description=requirement.description,
         priority=requirement.priority,
         created_at=created_at,
@@ -291,10 +292,11 @@ def create_postmortem(
 ):
     new_id = str(uuid.uuid4())
     created_at = datetime.now(timezone.utc).isoformat()
-    query = """CREATE (p:PostMortem {id: $id, root_cause: $root_cause, resolution: $resolution, lessons_learned: $lessons_learned, created_at: $created_at}) RETURN p"""
+    query = """CREATE (p:PostMortem {id: $id, title: $title, root_cause: $root_cause, resolution: $resolution, lessons_learned: $lessons_learned, created_at: $created_at}) RETURN p"""
     result = neo4j.run(
         query,
         id=new_id,
+        title=postmortem.title,
         root_cause=postmortem.root_cause,
         resolution=postmortem.resolution,
         lessons_learned=postmortem.lessons_learned,

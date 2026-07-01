@@ -26,6 +26,7 @@ class SeverityEnum(str, Enum):
 class PostMortem(BaseModel):
     temp_id: int
     incident_temp_id: int
+    title: str
     root_cause: str
     resolution: str
     lessons_learned: str
@@ -58,6 +59,7 @@ class TestCase(BaseModel):
 class Requirement(BaseModel):
     temp_id: int
     story_temp_id: int
+    title: str
     description: str
     priority: PriorityEnum
 

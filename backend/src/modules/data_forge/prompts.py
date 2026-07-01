@@ -20,6 +20,7 @@ _output_example = {
             {
                 "temp_id": 2,
                 "story_temp_id": 1,
+                "title": "...",
                 "description": "...",
                 "priority": "High",
             }
@@ -55,6 +56,7 @@ _output_example = {
             {
                 "temp_id": 6,
                 "incident_temp_id": 5,
+                "title": "...",
                 "root_cause": "...",
                 "resolution": "...",
                 "lessons_learned": "...",

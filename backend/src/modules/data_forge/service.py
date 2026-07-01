@@ -32,7 +32,7 @@ class DataForgeService:
         SET s.title = $title, s.description = $description, s.embedding = $embedding, s.created_at = $created_at
         """
         requirements_query = """MERGE (r:Requirement {id: $id})
-        SET r.description = $description, r.priority = $priority, r.embedding = $embedding, r.created_at = $created_at
+        SET r.title = $title, r.description = $description, r.priority = $priority, r.embedding = $embedding, r.created_at = $created_at
         """
         testcases_query = """MERGE (t:TestCase {id: $id})
         SET t.title = $title, t.steps = $steps, t.expected_result = $expected_result, t.embedding = $embedding, t.created_at = $created_at
@@ -44,7 +44,7 @@ class DataForgeService:
         SET i.title = $title, i.description = $description, i.impact = $impact, i.embedding = $embedding, i.created_at = $created_at
         """
         postmortems_query = """MERGE (p:PostMortem {id: $id})
-        SET p.root_cause = $root_cause, p.resolution = $resolution, p.lessons_learned = $lessons_learned, p.embedding = $embedding, p.created_at = $created_at
+        SET p.title = $title, p.root_cause = $root_cause, p.resolution = $resolution, p.lessons_learned = $lessons_learned, p.embedding = $embedding, p.created_at = $created_at
         """
 
         for story in batch.stories:
@@ -62,9 +62,10 @@ class DataForgeService:
             self.db.run(
                 requirements_query,
                 id=uuid_real,
+                title=requirement.title,
                 description=requirement.description,
                 priority=requirement.priority.value,
-                embedding=self.embedding.encode(requirement.description),
+                embedding=self.embedding.encode(f"{requirement.title} {requirement.description}"),
                 created_at=created_at,
             )
         for testcase in batch.testcases:
@@ -111,11 +112,12 @@ class DataForgeService:
             self.db.run(
                 postmortems_query,
                 id=uuid_real,
+                title=postmortem.title,
                 root_cause=postmortem.root_cause,
                 resolution=postmortem.resolution,
                 lessons_learned=postmortem.lessons_learned,
                 embedding=self.embedding.encode(
-                    f"{postmortem.lessons_learned} {postmortem.root_cause}"
+                    f"{postmortem.title} {postmortem.lessons_learned} {postmortem.root_cause}"
                 ),
                 created_at=created_at,
             )
