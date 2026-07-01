@@ -1,6 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { Search, Sparkles, Clock, ArrowRight, AlertCircle, Loader2 } from "lucide-react";
+import { Search, Sparkles, Clock, Network, AlertCircle, Loader2 } from "lucide-react";
 import { AppLayout } from "@/components/app-layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -58,11 +58,11 @@ function ScoreBar({ score }: { score: number }) {
 
 function SearchPage() {
   const [query, setQuery] = useState("falhas de autenticação por timeout");
+  const [filter, setFilter] = useState<EntityType | "all">("all");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [filter, setFilter] = useState<EntityType | null>(null);
   const [searched, setSearched] = useState(false);
   const { t } = useLang();
 
@@ -72,13 +72,16 @@ function SearchPage() {
     setError(null);
     setSearched(true);
     try {
-      const data = await searchSemantic({ text: query, filter, limit_responses: 10 });
+      const data = await searchSemantic({
+        text: query,
+        filter: filter === "all" ? null : filter,
+        limit_responses: 20,
+      });
       setResults(data.results);
       setTotal(data.total);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro desconhecido");
       setResults([]);
-      setTotal(0);
     } finally {
       setLoading(false);
     }
@@ -88,22 +91,22 @@ function SearchPage() {
     <AppLayout title={t("search.title")} subtitle={t("search.subtitle")}>
       <Card>
         <CardContent className="p-4">
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_auto_auto]">
-            <div className="relative">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
+                className="h-11 pl-9"
+                placeholder={t("search.placeholder")}
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                placeholder={t("search.placeholder")}
-                className="h-11 pl-9"
               />
             </div>
             <Select
-              value={filter ?? "all"}
-              onValueChange={(v) => setFilter(v === "all" ? null : (v as EntityType))}
+              value={filter}
+              onValueChange={(v) => setFilter(v as EntityType | "all")}
             >
-              <SelectTrigger className="h-11 sm:w-44">
+              <SelectTrigger className="h-11 w-full sm:w-44">
                 <SelectValue placeholder={t("search.filterPlaceholder")} />
               </SelectTrigger>
               <SelectContent>
@@ -181,7 +184,7 @@ function SearchPage() {
                 <Card key={r.id} className="transition-colors hover:border-primary/40">
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
+                      <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
                           <Badge variant="outline" className={entityTypeColors[r.label]}>
                             {r.label}
@@ -190,10 +193,18 @@ function SearchPage() {
                         </div>
                         <h3 className="mt-2 truncate font-semibold">{title}</h3>
                         {snippet && (
-                          <p className="mt-1 text-sm text-muted-foreground">{snippet}</p>
+                          <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
+                            {snippet}
+                          </p>
                         )}
                       </div>
-                      <ArrowRight className="mt-1 h-4 w-4 shrink-0 text-muted-foreground" />
+                      {/* Botão Ver impacto */}
+                      <Button variant="outline" size="sm" className="shrink-0 gap-1.5" asChild>
+                        <Link to="/impact" search={{ nodeId: r.id }}>
+                          <Network className="h-3.5 w-3.5" />
+                          Ver impacto
+                        </Link>
+                      </Button>
                     </div>
                     <div className="mt-3">
                       <ScoreBar score={r.score} />

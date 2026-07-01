@@ -1,10 +1,9 @@
 const API_BASE =
   typeof window !== "undefined"
-    ? ((import.meta.env?.VITE_API_URL as string | undefined) ?? "http://localhost:8000" )
+    ? ((import.meta.env?.VITE_API_URL as string | undefined) ?? "http://localhost:8000")
     : "http://backend:8000";
 
 // ─── Tipos de entidade ────────────────────────────────────────────────────────
-
 export type EntityType =
   | "Story"
   | "Requirement"
@@ -14,7 +13,6 @@ export type EntityType =
   | "PostMortem";
 
 // ─── Autenticação ─────────────────────────────────────────────────────────────
-
 export interface LoginRequest {
   username: string;
   password: string;
@@ -26,7 +24,6 @@ export interface LoginResponse {
 }
 
 export async function loginUser(payload: LoginRequest): Promise<LoginResponse> {
-  const token = typeof localStorage !== "undefined" ? localStorage.getItem("dm-token") : null;
   const response = await fetch(`${API_BASE}/api/v1/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -39,7 +36,6 @@ export async function loginUser(payload: LoginRequest): Promise<LoginResponse> {
 }
 
 // ─── Busca semântica ──────────────────────────────────────────────────────────
-
 export interface SearchResult {
   id: string;
   label: EntityType;
@@ -69,15 +65,54 @@ export async function searchSemantic(
   const response = await fetch(`${API_BASE}/api/v1/search/semantic`, {
     method: "POST",
     headers,
-    body: JSON.stringify({request_text: payload.text,          
+    body: JSON.stringify({
+      request_text: payload.text,
       filter: payload.filter ?? null,
-      limit_responses: payload.limit_responses ?? 10,}),
+      limit_responses: payload.limit_responses ?? 10,
+    }),
   });
-
   if (!response.ok) {
     const detail = await response.text().catch(() => response.statusText);
     throw new Error(`Erro na busca (${response.status}): ${detail}`);
   }
+  return response.json();
+}
 
+// ─── Análise de Impacto ───────────────────────────────────────────────────────
+export interface ImpactNode {
+  id: string;
+  label: EntityType;
+  properties: Record<string, unknown>;
+}
+
+export interface ImpactEdge {
+  source: string;
+  target: string;
+  relation: string;
+}
+
+export interface ImpactAnalysisResponse {
+  nodes: ImpactNode[];
+  edges: ImpactEdge[];
+}
+
+export async function getImpactAnalysis(
+  nodeId: string,
+  depth = 3,
+): Promise<ImpactAnalysisResponse> {
+  const token =
+    typeof localStorage !== "undefined" ? localStorage.getItem("dm-token") : null;
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+
+  const response = await fetch(
+    `${API_BASE}/api/v1/search/impact-analysis/${encodeURIComponent(nodeId)}?depth=${depth}`,
+    { method: "GET", headers },
+  );
+
+  if (!response.ok) {
+    const detail = await response.text().catch(() => response.statusText);
+    throw new Error(`Erro na análise de impacto (${response.status}): ${detail}`);
+  }
   return response.json();
 }

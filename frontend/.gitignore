@@ -32,3 +32,4 @@ dist-ssr
 *.sln
 *.sw?
 tsconfig.tsbuildinfo
+src/routeTree.gen.ts
