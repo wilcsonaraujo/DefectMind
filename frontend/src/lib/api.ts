@@ -234,3 +234,27 @@ export const getBugReports = () => fetchArtifacts<BugReportResponse>("/api/v1/bu
 export const getIncidents = () => fetchArtifacts<IncidentResponse>("/api/v1/incidents");
 
 export const getPostMortems = () => fetchArtifacts<PostMortemResponse>("/api/v1/postmortems");
+
+// ─── Usuários ─────────────────────────────────────────────────────────────────
+
+export interface UserResponse {
+  id: string;
+  email: string;
+  full_name: string | null;
+  role: string;
+  is_active: boolean;
+  created_at: string;
+}
+
+export async function getUsers(): Promise<UserResponse[]> {
+  const headers = authHeaders();
+  const response = await fetch(`${API_BASE}/api/v1/users`, {
+    method: "GET",
+    headers,
+  });
+  if (!response.ok) {
+    const detail = await response.text().catch(() => response.statusText);
+    throw new Error(`Erro ao carregar usuários (${response.status}): ${detail}`);
+  }
+  return response.json();
+}
