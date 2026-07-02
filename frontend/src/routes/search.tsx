@@ -13,7 +13,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { searchHistory } from "@/lib/mock-data";
 import { searchSemantic, type SearchResult, type EntityType } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
 
@@ -45,6 +44,8 @@ const entityTypeColors: Record<EntityType, string> = {
   PostMortem: "border-amber-500/30 bg-amber-500/10 text-amber-400",
 };
 
+const [history, setHistory] = useState<string[]>([]);
+
 function ScoreBar({ score }: { score: number }) {
   return (
     <div className="flex items-center gap-2">
@@ -71,6 +72,10 @@ function SearchPage() {
     setLoading(true);
     setError(null);
     setSearched(true);
+    setHistory((prev) => {
+      const updated = [query, ...prev.filter((h) => h !== query)];
+      return updated.slice(0, 5); 
+    });
     try {
       const data = await searchSemantic({
         text: query,
@@ -222,16 +227,22 @@ function SearchPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-1">
-            {searchHistory.map((h) => (
-              <button
-                key={h}
-                onClick={() => setQuery(h)}
-                className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-              >
-                <Search className="h-3.5 w-3.5 shrink-0" />
-                <span className="truncate">{h}</span>
-              </button>
-            ))}
+            {history.length === 0 ? (
+              <p className="px-2 py-2 text-xs text-muted-foreground">
+                Nenhuma busca recente.
+              </p>
+            ) : (
+              history.map((h) => (
+                <button
+                  key={h}
+                  onClick={() => setQuery(h)}
+                  className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                >
+                  <Search className="h-3.5 w-3.5 shrink-0" />
+                  <span className="truncate">{h}</span>
+                </button>
+              ))
+            )}
           </CardContent>
         </Card>
       </div>
