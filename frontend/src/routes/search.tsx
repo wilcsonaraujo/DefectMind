@@ -44,6 +44,8 @@ const entityTypeColors: Record<EntityType, string> = {
   PostMortem: "border-amber-500/30 bg-amber-500/10 text-amber-400",
 };
 
+const [history, setHistory] = useState<string[]>([]);
+
 function ScoreBar({ score }: { score: number }) {
   return (
     <div className="flex items-center gap-2">
