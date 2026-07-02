@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
 import { Search, Plus, Link2 } from "lucide-react";
 import { AppLayout } from "@/components/app-layout";
 import { Card, CardContent } from "@/components/ui/card";
@@ -21,8 +20,31 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { artifacts, artifactTypeColors, type ArtifactType } from "@/lib/mock-data";
+import { useEffect, useState } from "react";
+import { AlertCircle, Loader2 } from "lucide-react";
+import {
+  getStories, getRequirements, getTestCases,
+  getBugReports, getIncidents, getPostMortems,
+} from "@/lib/api";
 import { useLang } from "@/lib/i18n";
+
+type ArtifactType = "Story" | "Requirement" | "Test Case" | "Bug" | "Incident" | "Post-Mortem";
+
+interface ArtifactRow {
+  id: string;
+  type: ArtifactType;
+  name: string;
+  date: string;
+}
+
+const artifactTypeColors: Record<ArtifactType, string> = {
+  "Story":      "border-blue-500/40 text-blue-400",
+  "Requirement":"border-purple-500/40 text-purple-400",
+  "Test Case":  "border-emerald-500/40 text-emerald-400",
+  "Bug":        "border-red-500/40 text-red-400",
+  "Incident":   "border-orange-500/40 text-orange-400",
+  "Post-Mortem":"border-amber-500/40 text-amber-400",
+};
 
 export const Route = createFileRoute("/artifacts")({
   head: () => ({
@@ -46,20 +68,68 @@ const types: (ArtifactType | "All")[] = [
 
 function ArtifactsPage() {
   const [q, setQ] = useState("");
-  const [type, setType] = useState<(typeof types)[number]>("All");
+  const [type, setType] = useState<ArtifactType | "All">("All");
+  const [allArtifacts, setAllArtifacts] = useState<ArtifactRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const { t } = useLang();
 
-  const rows = useMemo(
-    () =>
-      artifacts.filter(
-        (a) =>
-          (type === "All" || a.type === type) &&
-          (a.name.toLowerCase().includes(q.toLowerCase()) ||
-            a.id.toLowerCase().includes(q.toLowerCase())),
-      ),
-    [q, type],
+  useEffect(() => {
+    Promise.all([
+      getStories(),
+      getRequirements(),
+      getTestCases(),
+      getBugReports(),
+      getIncidents(),
+      getPostMortems(),
+    ])
+      .then(([stories, reqs, tests, bugs, incidents, postmortems]) => {
+        const rows: ArtifactRow[] = [
+          ...stories.map((a) => ({ id: a.id, type: "Story" as ArtifactType, name: a.title, date: a.created_at })),
+          ...reqs.map((a) => ({ id: a.id, type: "Requirement" as ArtifactType, name: a.title, date: a.created_at })),
+          ...tests.map((a) => ({ id: a.id, type: "Test Case" as ArtifactType, name: a.title, date: a.created_at })),
+          ...bugs.map((a) => ({ id: a.id, type: "Bug" as ArtifactType, name: a.title, date: a.created_at })),
+          ...incidents.map((a) => ({ id: a.id, type: "Incident" as ArtifactType, name: a.title, date: a.created_at })),
+          ...postmortems.map((a) => ({ id: a.id, type: "Post-Mortem" as ArtifactType, name: a.title, date: a.created_at })),
+        ];
+        setAllArtifacts(rows);
+      })
+      .catch((err: Error) => setError(err.message))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const rows = allArtifacts.filter(
+    (a) =>
+      (type === "All" || a.type === type) &&
+      (a.name.toLowerCase().includes(q.toLowerCase()) ||
+        a.id.toLowerCase().includes(q.toLowerCase())),
   );
 
+  if (loading) {
+    return (
+      <AppLayout title={t("artifacts.title")} subtitle={t("artifacts.subtitle")}>
+        <div className="flex h-64 items-center justify-center gap-3 text-muted-foreground">
+          <Loader2 className="h-6 w-6 animate-spin" />
+          <span>Carregando artefatos…</span>
+        </div>
+      </AppLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <AppLayout title={t("artifacts.title")} subtitle={t("artifacts.subtitle")}>
+        <div className="flex h-64 flex-col items-center justify-center gap-3">
+          <AlertCircle className="h-8 w-8 text-destructive" />
+          <p className="text-sm text-destructive">{error}</p>
+          <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
+            Tentar novamente
+          </Button>
+        </div>
+      </AppLayout>
+    );
+  }
+  
   return (
     <AppLayout
       title={t("artifacts.title")}
@@ -104,7 +174,6 @@ function ArtifactsPage() {
                   <TableHead>{t("artifacts.col.id")}</TableHead>
                   <TableHead>{t("artifacts.col.name")}</TableHead>
                   <TableHead>{t("artifacts.col.date")}</TableHead>
-                  <TableHead className="text-right">{t("artifacts.col.relationships")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -119,9 +188,6 @@ function ArtifactsPage() {
                     <TableCell className="font-medium">{a.name}</TableCell>
                     <TableCell className="text-muted-foreground">{a.date}</TableCell>
                     <TableCell className="text-right">
-                      <span className="inline-flex items-center gap-1 text-muted-foreground">
-                        <Link2 className="h-3.5 w-3.5" /> {a.relationships}
-                      </span>
                     </TableCell>
                   </TableRow>
                 ))}
