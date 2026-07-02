@@ -134,11 +134,11 @@ function ArtifactsPage() {
     <AppLayout
       title={t("artifacts.title")}
       subtitle={t("artifacts.subtitle")}
-      actions={
+/*       actions={
         <Button>
           <Plus className="h-4 w-4" /> {t("artifacts.new")}
         </Button>
-      }
+      } */
     >
       <Card>
         <CardContent className="p-4">

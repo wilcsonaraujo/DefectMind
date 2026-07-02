@@ -1,5 +1,5 @@
 import { useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect , useState } from "react";
 
 /**
  * Redireciona para /login se não houver token JWT no localStorage.
@@ -47,4 +47,31 @@ export function getUserFromToken(): { name: string; email: string } | null {
 export function logout(navigate: ReturnType<typeof useNavigate>) {
   localStorage.removeItem("dm-token");
   navigate({ to: "/login" });
+}
+
+/**
+ * Hook principal de autenticação que retorna o estado do usuário
+ */
+export function useAuth() {
+  const [user, setUser] = useState<{ name: string; email: string } | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const userData = getUserFromToken();
+    setUser(userData);
+    setIsLoading(false);
+  }, []);
+
+  const handleLogout = () => {
+    logout(navigate);
+    setUser(null);
+  };
+
+  return {
+    user,
+    isLoading,
+    isAuthenticated: !!user,
+    logout: handleLogout,
+  };
 }
