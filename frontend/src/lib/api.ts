@@ -57,10 +57,7 @@ export interface SemanticSearchRequest {
 export async function searchSemantic(
   payload: SemanticSearchRequest,
 ): Promise<SemanticSearchResponse> {
-  const token =
-    typeof localStorage !== "undefined" ? localStorage.getItem("dm-token") : null;
-  const headers: Record<string, string> = { "Content-Type": "application/json" };
-  if (token) headers["Authorization"] = `Bearer ${token}`;
+  const headers = authHeaders();
   const response = await fetch(`${API_BASE}/api/v1/search/semantic`, {
     method: "POST",
     headers,
@@ -99,10 +96,7 @@ export async function getImpactAnalysis(
   nodeId: string,
   depth = 3,
 ): Promise<ImpactAnalysisResponse> {
-  const token =
-    typeof localStorage !== "undefined" ? localStorage.getItem("dm-token") : null;
-  const headers: Record<string, string> = { "Content-Type": "application/json" };
-  if (token) headers["Authorization"] = `Bearer ${token}`;
+  const headers = authHeaders();
   const response = await fetch(
     `${API_BASE}/api/v1/search/impact-analysis/${encodeURIComponent(nodeId)}?depth=${depth}`,
     { method: "GET", headers },
@@ -148,10 +142,7 @@ export interface GraphStatsResponse {
 }
 
 export async function getGraphStats(): Promise<GraphStatsResponse> {
-  const token =
-    typeof localStorage !== "undefined" ? localStorage.getItem("dm-token") : null;
-  const headers: Record<string, string> = { "Content-Type": "application/json" };
-  if (token) headers["Authorization"] = `Bearer ${token}`;
+  const headers = authHeaders();
   const response = await fetch(`${API_BASE}/api/v1/search/graph-stats`, {
     method: "GET",
     headers,
@@ -162,3 +153,84 @@ export async function getGraphStats(): Promise<GraphStatsResponse> {
   }
   return response.json();
 }
+
+// ─── Artefatos ────────────────────────────────────────────────────────────────
+
+function authHeaders(): Record<string, string> {
+  const token = typeof localStorage !== "undefined" ? localStorage.getItem("dm-token") : null;
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+  return headers;
+}
+
+export interface StoryResponse {
+  id: string;
+  title: string;
+  description: string;
+  created_at: string;
+}
+
+export interface RequirementResponse {
+  id: string;
+  title: string;
+  description: string;
+  priority: "Low" | "Medium" | "High";
+  created_at: string;
+}
+
+export interface TestCaseResponse {
+  id: string;
+  title: string;
+  steps: string;
+  expected_result: string;
+  created_at: string;
+}
+
+export interface BugReportResponse {
+  id: string;
+  title: string;
+  description: string;
+  severity: "Low" | "Medium" | "High" | "Critical";
+  created_at: string;
+}
+
+export interface IncidentResponse {
+  id: string;
+  title: string;
+  description: string;
+  impact: "Low" | "Medium" | "High" | "Critical";
+  created_at: string;
+}
+
+export interface PostMortemResponse {
+  id: string;
+  title: string;
+  root_cause: string;
+  resolution: string;
+  lessons_learned: string;
+  created_at: string;
+}
+
+async function fetchArtifacts<T>(path: string): Promise<T[]> {
+  const response = await fetch(`${API_BASE}${path}`, {
+    method: "GET",
+    headers: authHeaders(),
+  });
+  if (!response.ok) {
+    const detail = await response.text().catch(() => response.statusText);
+    throw new Error(`Erro ao carregar artefatos (${response.status}): ${detail}`);
+  }
+  return response.json();
+}
+
+export const getStories = () => fetchArtifacts<StoryResponse>("/api/v1/stories");
+
+export const getRequirements = () => fetchArtifacts<RequirementResponse>("/api/v1/requirements");
+
+export const getTestCases = () => fetchArtifacts<TestCaseResponse>("/api/v1/testcases");
+
+export const getBugReports = () => fetchArtifacts<BugReportResponse>("/api/v1/bugreports");
+
+export const getIncidents = () => fetchArtifacts<IncidentResponse>("/api/v1/incidents");
+
+export const getPostMortems = () => fetchArtifacts<PostMortemResponse>("/api/v1/postmortems");
