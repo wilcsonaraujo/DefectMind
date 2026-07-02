@@ -44,8 +44,6 @@ const entityTypeColors: Record<EntityType, string> = {
   PostMortem: "border-amber-500/30 bg-amber-500/10 text-amber-400",
 };
 
-const [history, setHistory] = useState<string[]>([]);
-
 function ScoreBar({ score }: { score: number }) {
   return (
     <div className="flex items-center gap-2">
@@ -65,7 +63,7 @@ function SearchPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searched, setSearched] = useState(false);
-  const [history, setHistory] = useState<string[]>([]);  
+  const [history, setHistory] = useState<string[]>([]);
   const { t } = useLang();
 
   async function handleSearch() {
@@ -75,7 +73,7 @@ function SearchPage() {
     setSearched(true);
     setHistory((prev) => {
       const updated = [query, ...prev.filter((h) => h !== query)];
-      return updated.slice(0, 5); 
+      return updated.slice(0, 5);
     });
     try {
       const data = await searchSemantic({
@@ -204,7 +202,6 @@ function SearchPage() {
                           </p>
                         )}
                       </div>
-                      {/* Botão Ver impacto */}
                       <Button variant="outline" size="sm" className="shrink-0 gap-1.5" asChild>
                         <Link to="/impact" search={{ nodeId: r.id }}>
                           <Network className="h-3.5 w-3.5" />
