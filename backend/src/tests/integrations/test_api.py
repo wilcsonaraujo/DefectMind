@@ -93,15 +93,41 @@ class TestLogin:
 
 
 class TestUsers:
-    def test_list_users_returns_200(self, client):
+    def _get_token(self, client) -> str:
+        client.post(
+            "/api/v1/auth/register",
+            json={
+                "email": "users@defectmind.com",
+                "password": "MinhaSenh@123",
+                "role": "admin",
+            },
+        )
+        response = client.post(
+            "/api/v1/auth/login",
+            json={"email": "users@defectmind.com", "password": "MinhaSenh@123"},
+        )
+        return response.json()["access_token"]
+
+    def test_list_users_requires_auth(self, client):
         response = client.get("/api/v1/users")
+        assert response.status_code == 401
+
+    def test_list_users_returns_200(self, client):
+        token = self._get_token(client)
+        response = client.get(
+            "/api/v1/users",
+            headers={"Authorization": f"Bearer {token}"},
+        )
         assert response.status_code == 200
         assert isinstance(response.json(), list)
 
     def test_get_user_not_found_returns_404(self, client):
         import uuid
-
-        response = client.get(f"/api/v1/users/{uuid.uuid4()}")
+        token = self._get_token(client)
+        response = client.get(
+            f"/api/v1/users/{uuid.uuid4()}",
+            headers={"Authorization": f"Bearer {token}"},
+        )
         assert response.status_code == 404
 
 
