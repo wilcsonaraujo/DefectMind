@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import {
@@ -13,9 +13,8 @@ import {
   Siren,
   ScrollText,
   ArrowRight,
-  CheckCircle2,
-  AlertTriangle,
-  GitCompareArrows,
+  Network,
+  Loader2,
 } from "lucide-react";
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import { AppLayout } from "@/components/app-layout";
@@ -31,17 +30,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  recentActivity,
-  topBugs,
-  severityColor,
-  recentSearches,
-  recentAnalyses,
-  riskBadgeColor,
-  artifactTypeColors,
-  stories,
-  type ArtifactType,
-} from "@/lib/mock-data";
-import { getGraphStats, type NodeByType } from "@/lib/api";
+  getGraphStats,
+  getStories,
+  getBugReports,
+  getIncidents,
+  type NodeByType,
+  type StoryResponse,
+  type BugReportResponse,
+  type IncidentResponse,
+} from "@/lib/api";
 import { useLang } from "@/lib/i18n";
 
 export const Route = createFileRoute("/")({
@@ -54,7 +51,9 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-// ─── Ícones e cores por tipo de artefato ─────────────────────────────────────
+// ─── Tipos e constantes ───────────────────────────────────────────────────────
+type ArtifactType = "Story" | "Requirement" | "Test Case" | "Bug" | "Incident" | "Post-Mortem";
+
 const statIcons: Record<ArtifactType, typeof FileText> = {
   Story: BookOpen,
   Requirement: FileText,
@@ -63,7 +62,6 @@ const statIcons: Record<ArtifactType, typeof FileText> = {
   Incident: Siren,
   "Post-Mortem": ScrollText,
 };
-
 const statTint: Record<ArtifactType, string> = {
   Story: "bg-chart-1/15 text-chart-1",
   Requirement: "bg-chart-2/15 text-chart-2",
@@ -72,22 +70,13 @@ const statTint: Record<ArtifactType, string> = {
   Incident: "bg-warning/15 text-warning",
   "Post-Mortem": "bg-primary/15 text-primary",
 };
-
-const activityIcon = {
-  success: { icon: CheckCircle2, cls: "text-success" },
-  warning: { icon: AlertTriangle, cls: "text-warning" },
-  bug: { icon: Bug, cls: "text-destructive" },
-  impact: { icon: GitCompareArrows, cls: "text-primary" },
-} as const;
-
 const quickActions = [
   { key: "qa.newDataset", icon: FlaskConical, to: "/data-forge" },
   { key: "qa.exploreGraph", icon: Share2, to: "/graph" },
   { key: "qa.newSearch", icon: Search, to: "/search" },
-  { key: "qa.newImpact", icon: GitCompareArrows, to: "/impact" },
+  { key: "qa.newImpact", icon: Network, to: "/impact" },
 ] as const;
 
-// ─── Mapeamento NodeByType → ArtifactType ────────────────────────────────────
 const NODE_TYPE_MAP: { key: keyof NodeByType; type: ArtifactType; label: string }[] = [
   { key: "Story",       type: "Story",       label: "Stories"      },
   { key: "Requirement", type: "Requirement", label: "Requisitos"   },
@@ -96,7 +85,6 @@ const NODE_TYPE_MAP: { key: keyof NodeByType; type: ArtifactType; label: string 
   { key: "Incident",    type: "Incident",    label: "Incidentes"   },
   { key: "PostMortem",  type: "Post-Mortem", label: "Post-mortems" },
 ];
-
 const DONUT_COLORS: Record<keyof NodeByType, string> = {
   Story:       "var(--chart-1)",
   Requirement: "var(--chart-2)",
@@ -105,36 +93,90 @@ const DONUT_COLORS: Record<keyof NodeByType, string> = {
   Incident:    "var(--chart-5)",
   PostMortem:  "oklch(0.7 0.17 330)",
 };
+const severityColor: Record<string, string> = {
+  Critical: "bg-destructive/15 text-destructive border-destructive/30",
+  High:     "bg-warning/15 text-warning border-warning/30",
+  Medium:   "bg-chart-5/15 text-chart-5 border-chart-5/30",
+  Low:      "bg-success/15 text-success border-success/30",
+};
+const severityOrder: Record<string, number> = {
+  Critical: 0, High: 1, Medium: 2, Low: 3,
+};
 
 // ─── Componente principal ─────────────────────────────────────────────────────
 function Index() {
-  const { t, tt, lang } = useLang();
+  const { t, lang } = useLang();
+  const navigate = useNavigate();
   const locale = lang === "pt" ? "pt-BR" : "en-US";
 
+  // Estado dos dados
   const [nodesByType, setNodesByType] = useState<NodeByType | null>(null);
+  const [stories, setStories] = useState<StoryResponse[]>([]);
+  const [topBugs, setTopBugs] = useState<BugReportResponse[]>([]);
+  const [recentActivity, setRecentActivity] = useState<IncidentResponse[]>([]);
+  const [selectedStory, setSelectedStory] = useState<string>("");
+
+  // Estado da busca semântica inline
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchLoading, setSearchLoading] = useState(false);
 
   useEffect(() => {
+    // Estatísticas do grafo e donut
     getGraphStats()
       .then((data) => setNodesByType(data.nodes_by_type))
       .catch(() => setNodesByType(null));
+
+    // Stories para o select de análise de impacto
+    getStories()
+      .then(setStories)
+      .catch(() => setStories([]));
+
+    // Top bugs por severidade
+    getBugReports()
+      .then((bugs) => {
+        const sorted = [...bugs].sort(
+          (a, b) => (severityOrder[a.severity] ?? 99) - (severityOrder[b.severity] ?? 99),
+        );
+        setTopBugs(sorted.slice(0, 5));
+      })
+      .catch(() => setTopBugs([]));
+
+    // Atividade recente: últimos incidentes criados
+    getIncidents()
+      .then((incidents) => {
+        const sorted = [...incidents].sort(
+          (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+        );
+        setRecentActivity(sorted.slice(0, 5));
+      })
+      .catch(() => setRecentActivity([]));
   }, []);
 
-  const whenLabel = (w: string) => {
-    if (w === "Hoje" || w === "Ontem") return tt(w);
-    const m = w.match(/(\d+)\s+dias atrás/);
-    if (m) return lang === "pt" ? w : `${m[1]} ${tt("daysAgo")}`;
-    return w;
-  };
-  const timeLabel = (s: string) =>
-    s.replace(/^Hoje/, tt("Hoje")).replace(/^Ontem/, tt("Ontem"));
+  // Busca semântica inline: navega para /search com a query
+  function handleSearch() {
+    if (!searchQuery.trim()) return;
+    setSearchLoading(true);
+    navigate({ to: "/search", search: { q: searchQuery } }).finally(() =>
+      setSearchLoading(false),
+    );
+  }
 
-  // Dados para o donut — usa API se disponível, senão zeros
+  // Donut data
   const donutData = NODE_TYPE_MAP.map(({ key, label }) => ({
     name: label,
     value: nodesByType?.[key] ?? 0,
     color: DONUT_COLORS[key],
   }));
   const totalNodes = donutData.reduce((a, b) => a + b.value, 0);
+
+  // Formatar data relativa
+  function relativeDate(iso: string): string {
+    const diff = Date.now() - new Date(iso).getTime();
+    const days = Math.floor(diff / 86_400_000);
+    if (days === 0) return lang === "pt" ? "Hoje" : "Today";
+    if (days === 1) return lang === "pt" ? "Ontem" : "Yesterday";
+    return lang === "pt" ? `${days} dias atrás` : `${days} days ago`;
+  }
 
   return (
     <AppLayout
@@ -171,8 +213,10 @@ function Index() {
         })}
       </div>
 
+      {/* ── Linha 2: Busca, Impacto, Grafo ── */}
       <div className="mt-6 grid gap-6 xl:grid-cols-3">
-        {/* ── Busca semântica ── */}
+
+        {/* ── Busca Semântica ── */}
         <Card>
           <CardHeader>
             <CardTitle>{t("dash.semanticSearch")}</CardTitle>
@@ -182,37 +226,34 @@ function Index() {
             <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input placeholder={t("dash.searchPlaceholder")} className="pl-9" />
+                <Input
+                  placeholder={t("dash.searchPlaceholder")}
+                  className="pl-9"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                />
               </div>
-              <Button asChild>
-                <Link to="/search">{t("dash.search")}</Link>
+              <Button onClick={handleSearch} disabled={searchLoading || !searchQuery.trim()}>
+                {searchLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  t("dash.search")
+                )}
               </Button>
             </div>
-            <div className="space-y-1">
-              <p className="text-xs font-semibold text-muted-foreground">{t("dash.recentSearches")}</p>
-              {recentSearches.map((s) => (
-                <div
-                  key={s.query}
-                  className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 rounded-lg px-2 py-2 hover:bg-secondary/50"
-                >
-                  <span className="flex min-w-0 items-center gap-2 text-sm">
-                    <Search className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                    <span className="truncate">{s.query}</span>
-                    <Badge variant="outline" className={`${artifactTypeColors[s.tag]} shrink-0`}>
-                      {s.tag}
-                    </Badge>
-                  </span>
-                  <span className="text-xs text-muted-foreground">{whenLabel(s.when)}</span>
-                </div>
-              ))}
-            </div>
+            <p className="text-xs text-muted-foreground">
+              {lang === "pt"
+                ? "Digite uma consulta em linguagem natural para buscar artefatos por similaridade semântica."
+                : "Type a natural language query to search artifacts by semantic similarity."}
+            </p>
             <Link to="/search" className="flex items-center gap-1 text-sm font-medium text-primary">
               {t("dash.viewAllSearches")} <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </CardContent>
         </Card>
 
-        {/* ── Análise de impacto ── */}
+        {/* ── Análise de Impacto ── */}
         <Card>
           <CardHeader>
             <CardTitle>{t("dash.impact")}</CardTitle>
@@ -220,50 +261,63 @@ function Index() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2">
-              <Select>
+              <Select value={selectedStory} onValueChange={setSelectedStory}>
                 <SelectTrigger>
-                  <SelectValue placeholder={t("dash.selectStory")} />
+                  <SelectValue
+                    placeholder={
+                      stories.length === 0
+                        ? lang === "pt" ? "Carregando stories…" : "Loading stories…"
+                        : t("dash.selectStory")
+                    }
+                  />
                 </SelectTrigger>
                 <SelectContent>
-                  {stories.map((s) => (
-                    <SelectItem key={s.id} value={s.id}>
-                      {s.id} — {s.title}
+                  {stories.length === 0 ? (
+                    <SelectItem value="none" disabled>
+                      {lang === "pt" ? "Nenhuma story disponível" : "No stories available"}
                     </SelectItem>
-                  ))}
+                  ) : (
+                    stories.map((s) => (
+                      <SelectItem key={s.id} value={s.id}>
+                        {s.title}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
-              <Button asChild>
-                <Link to="/impact">{t("dash.analyze")}</Link>
+              <Button asChild disabled={!selectedStory}>
+                <Link to="/impact" search={selectedStory ? { nodeId: selectedStory } : {}}>
+                  {t("dash.analyze")}
+                </Link>
               </Button>
             </div>
             <div className="space-y-1">
-              <p className="text-xs font-semibold text-muted-foreground">{t("dash.recentAnalyses")}</p>
-              {recentAnalyses.map((a) => (
+              <p className="text-xs font-semibold text-muted-foreground">
+                {lang === "pt" ? `${stories.length} stories disponíveis` : `${stories.length} stories available`}
+              </p>
+              {stories.slice(0, 3).map((s) => (
                 <div
-                  key={a.story}
-                  className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 rounded-lg px-2 py-2 hover:bg-secondary/50"
+                  key={s.id}
+                  className="flex items-center justify-between gap-2 rounded-lg px-2 py-1.5 hover:bg-secondary/50"
                 >
-                  <span className="flex min-w-0 items-center gap-2 text-sm">
-                    <span className="truncate">{a.story}</span>
-                    <Badge variant="outline" className={`${riskBadgeColor[a.risk]} shrink-0`}>
-                      {tt(a.risk)}
-                    </Badge>
-                  </span>
-                  <span className="text-xs text-muted-foreground">{whenLabel(a.when)}</span>
+                  <span className="truncate text-sm">{s.title}</span>
+                  <Button variant="ghost" size="sm" className="h-6 shrink-0 px-2 text-xs" asChild>
+                    <Link to="/impact" search={{ nodeId: s.id }}>
+                      <Network className="mr-1 h-3 w-3" />
+                      {lang === "pt" ? "Ver" : "View"}
+                    </Link>
+                  </Button>
                 </div>
               ))}
             </div>
-            <Link to="/impact" className="flex items-center gap-1 text-sm font-medium text-primary">
-              {t("dash.viewAllAnalyses")} <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
           </CardContent>
         </Card>
 
-        {/* ── Resumo do grafo (donut) ── */}
+        {/* ── Grafo de conhecimento ── */}
         <Card>
           <CardHeader>
-            <CardTitle>{t("dash.graphSummary")}</CardTitle>
-            <p className="text-sm text-muted-foreground">{t("dash.graphSummary.desc")}</p>
+            <CardTitle>{t("dash.knowledgeGraph")}</CardTitle>
+            <p className="text-sm text-muted-foreground">{t("dash.knowledgeGraph.desc")}</p>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-4">
@@ -272,11 +326,12 @@ function Index() {
                   <PieChart>
                     <Pie
                       data={donutData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={44}
+                      outerRadius={64}
                       dataKey="value"
-                      innerRadius={48}
-                      outerRadius={68}
-                      paddingAngle={2}
-                      stroke="none"
+                      strokeWidth={0}
                     >
                       {donutData.map((d) => (
                         <Cell key={d.name} fill={d.color} />
@@ -314,32 +369,36 @@ function Index() {
         </Card>
       </div>
 
-      {/* ── Atividade recente, top bugs e ações rápidas ── */}
+      {/* ── Linha 3: Atividade recente, Top Bugs, Ações rápidas ── */}
       <div className="mt-6 grid gap-6 xl:grid-cols-3">
+
+        {/* ── Atividade recente (últimos incidentes) ── */}
         <Card>
           <CardHeader>
             <CardTitle>{t("dash.recentActivity")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-1">
-            {recentActivity.map((a) => {
-              const meta = activityIcon[a.kind as keyof typeof activityIcon];
-              const Icon = meta.icon;
-              return (
+            {recentActivity.length === 0 ? (
+              <p className="px-2 py-4 text-sm text-muted-foreground">
+                {lang === "pt" ? "Nenhum incidente registrado." : "No incidents recorded."}
+              </p>
+            ) : (
+              recentActivity.map((inc) => (
                 <div
-                  key={a.id}
+                  key={inc.id}
                   className="flex gap-3 rounded-lg px-2 py-2.5 hover:bg-secondary/50"
                 >
-                  <Icon className={`mt-0.5 h-4 w-4 shrink-0 ${meta.cls}`} />
+                  <Siren className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium">{a.title}</p>
-                    <p className="truncate text-xs text-muted-foreground">{a.desc}</p>
+                    <p className="truncate text-sm font-medium">{inc.title}</p>
+                    <p className="truncate text-xs text-muted-foreground">{inc.description}</p>
                   </div>
                   <span className="shrink-0 text-xs text-muted-foreground">
-                    {timeLabel(a.time)}
+                    {relativeDate(inc.created_at)}
                   </span>
                 </div>
-              );
-            })}
+              ))
+            )}
             <Link
               to="/artifacts"
               className="flex items-center gap-1 pt-2 text-sm font-medium text-primary"
@@ -349,25 +408,30 @@ function Index() {
           </CardContent>
         </Card>
 
+        {/* ── Top Bugs por Severidade ── */}
         <Card>
           <CardHeader>
             <CardTitle>{t("dash.topBugs")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-1">
-            {topBugs.map((b, i) => (
-              <div
-                key={b.id}
-                className="grid grid-cols-[auto_auto_minmax(0,1fr)_auto_auto] items-center gap-3 rounded-lg px-2 py-2.5 hover:bg-secondary/50"
-              >
-                <span className="w-3 text-sm text-muted-foreground">{i + 1}</span>
-                <span className="font-mono text-xs text-muted-foreground">{b.id}</span>
-                <span className="truncate text-sm">{b.title}</span>
-                <Badge variant="outline" className={severityColor[b.severity]}>
-                  {tt(b.severity)}
-                </Badge>
-                <span className="text-sm font-semibold text-muted-foreground">{b.count}</span>
-              </div>
-            ))}
+            {topBugs.length === 0 ? (
+              <p className="px-2 py-4 text-sm text-muted-foreground">
+                {lang === "pt" ? "Nenhum bug registrado." : "No bugs recorded."}
+              </p>
+            ) : (
+              topBugs.map((b, i) => (
+                <div
+                  key={b.id}
+                  className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-lg px-2 py-2.5 hover:bg-secondary/50"
+                >
+                  <span className="w-4 text-sm text-muted-foreground">{i + 1}</span>
+                  <span className="truncate text-sm">{b.title}</span>
+                  <Badge variant="outline" className={severityColor[b.severity] ?? ""}>
+                    {b.severity}
+                  </Badge>
+                </div>
+              ))
+            )}
             <Link
               to="/artifacts"
               className="flex items-center gap-1 pt-2 text-sm font-medium text-primary"
@@ -377,6 +441,7 @@ function Index() {
           </CardContent>
         </Card>
 
+        {/* ── Ações rápidas ── */}
         <Card>
           <CardHeader>
             <CardTitle>{t("dash.quickActions")}</CardTitle>

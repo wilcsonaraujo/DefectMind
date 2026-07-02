@@ -1,23 +1,19 @@
-import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
-import { useState, type ReactNode } from "react";
+import { type ReactNode, useEffect, useState } from "react";
+import { Link, useNavigate } from "@tanstack/react-router";
 import {
   LayoutDashboard,
+  Package,
   Search,
-  GitCompareArrows,
   Share2,
+  GitCompareArrows,
   FlaskConical,
-  Boxes,
   Users,
-  Settings,
-  Server,
-  Bell,
   Menu,
   X,
-  BrainCircuit,
   LogOut,
   Languages,
+  Bell,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,125 +22,80 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 import { useLang } from "@/lib/i18n";
-import { getUserFromToken, logout } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/use-auth";
+import { getUserFromToken } from "@/lib/auth-utils";
+import { getHealthStatus, type HealthResponse } from "@/lib/api";
 
-const navMain = [
-  { to: "/", key: "nav.dashboard", subKey: "nav.dashboard.sub", icon: LayoutDashboard },
-  { to: "/search", key: "nav.search", subKey: "nav.search.sub", icon: Search },
-  { to: "/impact", key: "nav.impact", subKey: "nav.impact.sub", icon: GitCompareArrows },
-  { to: "/graph", key: "nav.graph", subKey: "nav.graph.sub", icon: Share2 },
-  { to: "/data-forge", key: "nav.dataForge", subKey: "nav.dataForge.sub", icon: FlaskConical },
-  { to: "/artifacts", key: "nav.artifacts", subKey: "nav.artifacts.sub", icon: Boxes },
-] as const;
-
-const navConfig = [
-  { to: "/users", key: "nav.users", icon: Users },
-  { to: "/settings", key: "nav.settings", icon: Settings },
-  { to: "/environments", key: "nav.environments", icon: Server },
+const navItems = [
+  { key: "nav.dashboard",  icon: LayoutDashboard, to: "/"           },
+  { key: "nav.artifacts",  icon: Package,         to: "/artifacts"  },
+  { key: "nav.search",     icon: Search,          to: "/search"     },
+  { key: "nav.graph",      icon: Share2,          to: "/graph"      },
+  { key: "nav.impact",     icon: GitCompareArrows,to: "/impact"     },
+  { key: "nav.dataForge",  icon: FlaskConical,    to: "/data-forge" },
+  { key: "nav.users",      icon: Users,           to: "/users"      },
 ] as const;
 
 function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const navigate = useNavigate();
   const { t } = useLang();
-  const isActive = (to: string) => (to === "/" ? pathname === "/" : pathname.startsWith(to));
+  return (
+    <div className="flex h-full flex-col">
+      <div className="flex h-16 items-center gap-2 border-b border-sidebar-border px-4">
+        <div className="grid h-8 w-8 place-items-center rounded-lg bg-primary text-primary-foreground">
+          <Share2 className="h-4 w-4" />
+        </div>
+        <span className="font-semibold tracking-tight">DefectMind</span>
+      </div>
+      <nav className="flex-1 space-y-1 overflow-y-auto p-3">
+        {navItems.map((item) => (
+          <Link
+            key={item.to}
+            to={item.to}
+            onClick={onNavigate}
+            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground [&.active]:bg-sidebar-accent [&.active]:font-medium [&.active]:text-sidebar-foreground"
+          >
+            <item.icon className="h-4 w-4 shrink-0" />
+            {t(item.key)}
+          </Link>
+        ))}
+      </nav>
+      <UserFooter />
+    </div>
+  );
+}
 
-  // Extrair dados do usuário logado a partir do JWT
+function UserFooter() {
+  const { t } = useLang();
+  const navigate = useNavigate();
+  const { logout } = useAuth();
   const user = getUserFromToken();
   const displayName = user?.name ?? "Usuário";
   const displayEmail = user?.email ?? "";
   const initials = displayName
     .split(" ")
-    .map((n) => n[0])
+    .map((n: string) => n[0])
     .join("")
     .toUpperCase()
     .slice(0, 2);
-
   return (
-    <div className="flex h-full flex-col">
-      <div className="flex h-20 items-center gap-2.5 px-5">
-        <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground">
-          <BrainCircuit className="h-5 w-5" />
+    <div className="border-t border-sidebar-border p-3">
+      <div className="flex items-center gap-2">
+        <Avatar className="h-8 w-8 shrink-0">
+          <AvatarFallback className="bg-primary/20 text-xs text-primary">{initials}</AvatarFallback>
+        </Avatar>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-xs font-medium">{displayName}</p>
+          <p className="truncate text-[11px] text-muted-foreground">{displayEmail}</p>
         </div>
-        <div className="min-w-0">
-          <p className="truncate text-base font-bold tracking-tight text-sidebar-foreground">DefectMind</p>
-          <p className="truncate text-[11px] text-muted-foreground">{t("tagline")}</p>
-        </div>
-      </div>
-      <nav className="flex-1 overflow-y-auto px-3 py-2">
-        <p className="px-3 pb-2 pt-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-          {t("nav.navigation")}
-        </p>
-        <div className="space-y-1">
-          {navMain.map((item) => {
-            const active = isActive(item.to);
-            return (
-              <Link
-                key={item.to}
-                to={item.to}
-                onClick={onNavigate}
-                className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors",
-                  active
-                    ? "bg-primary/15 text-sidebar-foreground"
-                    : "text-muted-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-foreground",
-                )}
-              >
-                <item.icon className={cn("h-4 w-4 shrink-0", active && "text-primary")} />
-                <span className="min-w-0">
-                  <span className={cn("block truncate text-sm font-medium", active && "text-sidebar-foreground")}>
-                    {t(item.key)}
-                  </span>
-                  <span className="block truncate text-[11px] text-muted-foreground">{t(item.subKey)}</span>
-                </span>
-              </Link>
-            );
-          })}
-        </div>
-        <p className="px-3 pb-2 pt-5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-          {t("nav.config")}
-        </p>
-        <div className="space-y-1">
-          {navConfig.map((item) => {
-            const active = isActive(item.to);
-            return (
-              <Link
-                key={item.to}
-                to={item.to}
-                onClick={onNavigate}
-                className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                  active
-                    ? "bg-primary/15 text-sidebar-foreground"
-                    : "text-muted-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-foreground",
-                )}
-              >
-                <item.icon className={cn("h-4 w-4 shrink-0", active && "text-primary")} />
-                <span className="truncate">{t(item.key)}</span>
-              </Link>
-            );
-          })}
-        </div>
-      </nav>
-      {/* Footer do sidebar: dados do usuário + botão de logout */}
-      <div className="border-t border-sidebar-border p-3">
-        <div className="flex items-center gap-3 rounded-lg px-2 py-2">
-          <Avatar className="h-8 w-8">
-            <AvatarFallback className="bg-primary/20 text-xs text-primary">{initials}</AvatarFallback>
-          </Avatar>
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium text-sidebar-foreground">{displayName}</p>
-            <p className="truncate text-[11px] text-muted-foreground">{displayEmail}</p>
-          </div>
-          <button
-            onClick={() => logout(navigate)}
-            title={t("nav.logout")}
-            className="shrink-0 rounded-md p-1 text-muted-foreground transition-colors hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
-          >
-            <LogOut className="h-4 w-4" />
-          </button>
-        </div>
+        <button
+          onClick={() => logout(navigate)}
+          title={t("nav.logout")}
+          className="shrink-0 rounded-md p-1 text-muted-foreground transition-colors hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
+        >
+          <LogOut className="h-4 w-4" />
+        </button>
       </div>
     </div>
   );
@@ -173,16 +124,33 @@ export function AppLayout({
   children: ReactNode;
 }) {
   const [open, setOpen] = useState(false);
+  const [health, setHealth] = useState<HealthResponse | null>(null);
   const { t, lang, setLang } = useLang();
 
   // Dados do usuário para o avatar do header
   const user = getUserFromToken();
   const initials = (user?.name ?? "U")
     .split(" ")
-    .map((n) => n[0])
+    .map((n: string) => n[0])
     .join("")
     .toUpperCase()
     .slice(0, 2);
+
+  useEffect(() => {
+    getHealthStatus()
+      .then(setHealth)
+      .catch(() => setHealth(null));
+  }, []);
+
+  const envValue = health?.environment ?? "—";
+  const versionValue = health?.version ?? "—";
+  const neo4jValue = health
+    ? health.neo4j === "connected"
+      ? t("status.connected")
+      : t("status.disconnected")
+    : "—";
+  const neo4jColor =
+    health?.neo4j === "connected" ? "bg-success" : "bg-destructive";
 
   return (
     <div className="min-h-screen w-full bg-background text-foreground">
@@ -214,9 +182,21 @@ export function AppLayout({
             </button>
             <div className="min-w-0" />
             <div className="flex items-center justify-end gap-2">
-              <StatusBadge label={t("status.environment")} value="DEV" color="bg-success" />
-              <StatusBadge label={t("status.version")} value="v0.1.0" color="bg-primary" />
-              <StatusBadge label={t("status.neo4j")} value={t("status.connected")} color="bg-success" />
+              <StatusBadge
+                label={t("status.environment")}
+                value={envValue}
+                color={envValue === "production" ? "bg-destructive" : "bg-success"}
+              />
+              <StatusBadge
+                label={t("status.version")}
+                value={versionValue}
+                color="bg-primary"
+              />
+              <StatusBadge
+                label={t("status.neo4j")}
+                value={neo4jValue}
+                color={neo4jColor}
+              />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm" className="gap-1.5">

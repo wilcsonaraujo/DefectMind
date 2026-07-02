@@ -258,3 +258,57 @@ export async function getUsers(): Promise<UserResponse[]> {
   }
   return response.json();
 }
+
+// ─── Health / Status ──────────────────────────────────────────────────────────
+
+export interface HealthResponse {
+  status: string;
+  service: string;
+  version: string;
+  environment: string;
+  database: string;
+  neo4j: string;
+  timestamp: string;
+}
+
+export async function getHealthStatus(): Promise<HealthResponse> {
+  const response = await fetch(`${API_BASE}/api/v1/health`, {
+    method: "GET",
+  });
+  if (!response.ok) {
+    throw new Error(`Health check falhou (${response.status})`);
+  }
+  return response.json();
+}
+
+// ─── Data Forge ───────────────────────────────────────────────────────────────
+
+export interface GenerateDatasetRequest {
+  num_stories: number;
+  batch_size: number;
+}
+
+export interface GenerateDatasetResult {
+  stories?: number;
+  requirements?: number;
+  testcases?: number;
+  bug_reports?: number;
+  incidents?: number;
+  postmortems?: number;
+}
+
+export async function generateDataset(
+  payload: GenerateDatasetRequest,
+): Promise<GenerateDatasetResult> {
+  const headers = authHeaders();
+  const response = await fetch(`${API_BASE}/data-forge/generate`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(payload),
+  });
+  if (!response.ok) {
+    const detail = await response.text().catch(() => response.statusText);
+    throw new Error(`Erro ao gerar dataset (${response.status}): ${detail}`);
+  }
+  return response.json();
+}
