@@ -6,7 +6,7 @@ from backend.src.modules.data_forge.schemas import GenerateRequest
 from backend.src.core.ai.provider_factory import get_ai_provider
 from backend.src.modules.data_forge.service import DataForgeService
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(get_current_user)])
 
 
 @router.post(
