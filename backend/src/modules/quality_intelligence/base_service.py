@@ -12,7 +12,7 @@ class QualityIntelligenceBaseService:
         for node in nodes:
             # Extract the label (type) of the node. Assumes the Neo4j driver pattern.
             label = (
-                list(node.labels)[0]
+                list(node.labels)[0].sort()
                 if hasattr(node, "labels") and node.labels
                 else "Artifact"
             )
@@ -36,6 +36,15 @@ class QualityIntelligenceBaseService:
             "Do not use external knowledge. If the data is insufficient, declare it."
         )
 
-        prompt = f"{system_instruction}\n\nData for analysis:\n{prompt}"
-        response_llm = self.ai_provider.generate_response(prompt, temperature=0.1)
-        return response_llm
+        try:
+            prompt = f"{system_instruction}\n\nData for analysis:\n{prompt}"
+        except Exception as e:
+            print(f"Error occurred while building LLM prompt: {e}")
+            raise
+
+        try:
+            response_llm = self.ai_provider.generate_response(prompt, temperature=0.1)
+            return response_llm
+        except Exception as e:
+            print(f"Error occurred while calling LLM: {e}")
+            raise

@@ -1,4 +1,5 @@
-from pydantic.v1 import BaseModel
+from enum import Enum
+from pydantic import BaseModel
 
 
 class EvidenceItem (BaseModel):
@@ -6,7 +7,7 @@ class EvidenceItem (BaseModel):
    type: str
    justification: str
 
-class RiskLevelEnum (BaseModel):
+class RiskLevelEnum (str, Enum):
    LOW: str
    MEDIUM: str
    HIGH: str

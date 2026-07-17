@@ -20,7 +20,7 @@ from backend.src.modules.artifacts.schemas import (
     TestCaseResponse,
 )
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(get_current_user)])
 
 
 @router.get(
