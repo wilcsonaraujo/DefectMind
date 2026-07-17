@@ -1,3 +1,6 @@
+import logging
+
+
 class QualityIntelligenceBaseService:
     def __init__(self, db_session, ai_provider):
         self.db_session = db_session
@@ -41,5 +44,5 @@ class QualityIntelligenceBaseService:
             response_llm = self.ai_provider.generate_response(prompt, temperature=0.1)
             return response_llm
         except Exception as e:
-            print(f"Error occurred while calling LLM: {e}")
+            logging.error(f"Error occurred while calling LLM: {e}")
             raise
