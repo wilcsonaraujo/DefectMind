@@ -38,11 +38,6 @@ class QualityIntelligenceBaseService:
 
         try:
             prompt = f"{system_instruction}\n\nData for analysis:\n{prompt}"
-        except Exception as e:
-            print(f"Error occurred while building LLM prompt: {e}")
-            raise
-
-        try:
             response_llm = self.ai_provider.generate_response(prompt, temperature=0.1)
             return response_llm
         except Exception as e:
