@@ -12,7 +12,7 @@ class QualityIntelligenceBaseService:
         for node in nodes:
             # Extract the label (type) of the node. Assumes the Neo4j driver pattern.
             label = (
-                list(node.labels)[0].sort()
+                sorted(node.labels)[0]
                 if hasattr(node, "labels") and node.labels
                 else "Artifact"
             )

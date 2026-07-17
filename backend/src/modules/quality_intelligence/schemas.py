@@ -8,9 +8,9 @@ class EvidenceItem (BaseModel):
    justification: str
 
 class RiskLevelEnum (str, Enum):
-   LOW: str
-   MEDIUM: str
-   HIGH: str
+   LOW = "LOW"
+   MEDIUM = "MEDIUM"
+   HIGH = "HIGH"
 
 class QIResponse (BaseModel):
    evidence: list[EvidenceItem]
