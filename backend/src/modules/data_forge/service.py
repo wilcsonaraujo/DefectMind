@@ -12,7 +12,10 @@ from backend.src.modules.data_forge.schemas import DataForgeOutput
 class DataForgeService:
 
     def __init__(
-        self, ai_provider: AIProvider, neo4j_session, embedding_service: EmbeddingService
+        self,
+        ai_provider: AIProvider,
+        neo4j_session,
+        embedding_service: EmbeddingService,
     ):
         self.ai = ai_provider
         self.db = neo4j_session
@@ -65,7 +68,9 @@ class DataForgeService:
                 title=requirement.title,
                 description=requirement.description,
                 priority=requirement.priority.value,
-                embedding=self.embedding.encode(f"{requirement.title} {requirement.description}"),
+                embedding=self.embedding.encode(
+                    f"{requirement.title} {requirement.description}"
+                ),
                 created_at=created_at,
             )
         for testcase in batch.testcases:
