@@ -12,7 +12,11 @@ class RiskLevelEnum (str, Enum):
    MEDIUM = "MEDIUM"
    HIGH = "HIGH"
 
-class QIResponse (BaseModel):
+class HealthScoreResponse (BaseModel):
    evidence: list[EvidenceItem]
    ai_analysis: str
+   recommendations: list[str]
    risk_classification: RiskLevelEnum
+
+class HealthScoreRequest (BaseModel):
+   node_id: str

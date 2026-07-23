@@ -1,7 +1,6 @@
 import uuid
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from starlette.exceptions import HTTPException
 from backend.src.core.database import get_db
 from backend.src.core.dependencies import get_current_user
 from backend.src.models.user import User
