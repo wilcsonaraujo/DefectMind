@@ -1,12 +1,5 @@
-<<<<<<< HEAD
-from urllib import response
-
 import pytest
 from unittest.mock import ANY, MagicMock, call  # noqa: F401
-=======
-import pytest
-from unittest.mock import MagicMock, call  # noqa: F401
->>>>>>> c6ae0462dfa3aa5f71c316fd23779e58ce1f57ab
 from backend.src.modules.quality_intelligence.health_score_service import (
     HealthScoreService,
 )
@@ -129,11 +122,7 @@ class TestAIResponse:
         response = service._call_llm(prompt)
         assert response == expected_response
         service.ai_provider.generate_response.assert_called_once_with(
-<<<<<<< HEAD
             ANY, temperature=0.1
-=======
-            prompt, temperature=0.1
->>>>>>> c6ae0462dfa3aa5f71c316fd23779e58ce1f57ab
         )
 
     def test_call_llm_with_exception(self, service):
