@@ -1,4 +1,9 @@
+<<<<<<< HEAD
 from fastapi import APIRouter, Depends, HTTPException
+=======
+from fastapi import APIRouter, Depends
+from starlette.exceptions import HTTPException
+>>>>>>> c6ae0462dfa3aa5f71c316fd23779e58ce1f57ab
 from backend.src.core.ai.provider_factory import get_ai_provider
 from backend.src.core.dependencies import get_current_user
 from backend.src.core.neo4j_db import get_neo4j_session
