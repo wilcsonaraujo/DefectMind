@@ -1,4 +1,5 @@
 from neo4j import GraphDatabase
+
 from backend.src.core.config import settings
 
 _driver = None

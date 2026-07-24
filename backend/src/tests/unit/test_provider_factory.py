@@ -1,13 +1,14 @@
 import os
-import pytest
 from unittest.mock import patch
+
+import pytest
 
 os.environ.setdefault("DEEPSEEK_API_KEY", "fake-deepseek-key")
 os.environ.setdefault("GEMINI_API_KEY", "fake-gemini-key")
 
-from backend.src.core.ai.provider_factory import get_ai_provider
 from backend.src.core.ai.deepseek_provider import DeepSeekProvider
 from backend.src.core.ai.gemini_provider import GeminiProvider
+from backend.src.core.ai.provider_factory import get_ai_provider
 
 
 def test_get_ai_provider_returns_deepseek():
@@ -31,7 +32,7 @@ def test_get_ai_provider_returns_gemini():
 
 
 def test_get_ai_provider_case_insensitive():
-    """The factory accepts values ​​in uppercase or with spaces."""
+    """The factory accepts values \u200b\u200bin uppercase or with spaces."""
     with patch("backend.src.core.ai.provider_factory.settings") as mock_settings:
         mock_settings.AI_PROVIDER = "  DeepSeek  "
         mock_settings.DEEPSEEK_API_KEY = "fake-deepseek-key"

@@ -11,18 +11,19 @@ os.environ.setdefault("NEO4J_USER", "")
 os.environ.setdefault("NEO4J_PASSWORD", "")
 
 
+from unittest.mock import MagicMock, patch
+
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import StaticPool, create_engine
 from sqlalchemy.orm import sessionmaker
-from backend.src.core.database import Base, get_db
-from backend.src.main import app
-from backend.src.core.neo4j_db import get_neo4j_session
-from unittest.mock import MagicMock, patch
-from backend.src.core.ai.gemini_provider import GeminiProvider
 
 # Import models to ensure they are registered with SQLAlchemy
 import backend.src.models  # noqa: F401
+from backend.src.core.ai.gemini_provider import GeminiProvider
+from backend.src.core.database import Base, get_db
+from backend.src.core.neo4j_db import get_neo4j_session
+from backend.src.main import app
 
 TEST_DATABASE_URL = "sqlite:///:memory:"
 

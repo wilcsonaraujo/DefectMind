@@ -1,5 +1,7 @@
-import pytest
 from unittest.mock import MagicMock
+
+import pytest
+
 from backend.src.modules.data_forge.service import DataForgeService
 
 FAKE_EMBEDDING = [0.1] * 384

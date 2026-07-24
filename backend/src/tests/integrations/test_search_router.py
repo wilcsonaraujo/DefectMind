@@ -1,7 +1,9 @@
 from unittest.mock import MagicMock, patch
+
 from fastapi.testclient import TestClient
-from backend.src.main import app
+
 from backend.src.core.dependencies import get_embedding_service
+from backend.src.main import app
 
 MOCK_RESULTS = {
     "results": [

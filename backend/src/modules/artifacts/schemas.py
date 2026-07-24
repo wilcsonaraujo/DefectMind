@@ -1,6 +1,7 @@
+import uuid
 from datetime import datetime
 from enum import Enum
-import uuid
+
 import neo4j
 from pydantic import BaseModel, field_validator
 

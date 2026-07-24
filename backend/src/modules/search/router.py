@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Depends, Query
+
 from backend.src.core.dependencies import get_current_user, get_embedding_service
 from backend.src.core.neo4j_db import get_neo4j_session
 from backend.src.models.user import User
-from backend.src.modules.search.impact_analysis_service import ImpactAnalysisService
 from backend.src.modules.search.graph import GraphService
+from backend.src.modules.search.impact_analysis_service import ImpactAnalysisService
 from backend.src.modules.search.schemas import (
     ImpactAnalysisResponse,
     SemanticSearchRequest,

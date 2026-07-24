@@ -1,8 +1,8 @@
+from collections import Counter
+
 from backend.src.modules.quality_intelligence.base_service import (
     QualityIntelligenceBaseService,
 )
-from collections import Counter
-
 from backend.src.modules.quality_intelligence.schemas import HealthScoreResponse
 
 

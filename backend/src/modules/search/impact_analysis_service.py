@@ -12,8 +12,7 @@ class ImpactAnalysisService:
         self.db = neo4j_session
 
     def get_impact(self, node_id: str, depth: int):
-        if depth < 1:
-            depth = 1
+        depth = max(depth, 1)
 
         query = f"""
                 MATCH (start {{id: $node_id}})-[r*1..{depth}]-(connected)

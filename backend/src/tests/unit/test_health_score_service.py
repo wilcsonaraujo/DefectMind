@@ -1,9 +1,10 @@
-import pytest
 from unittest.mock import ANY, MagicMock, call  # noqa: F401
+
+import pytest
+
 from backend.src.modules.quality_intelligence.health_score_service import (
     HealthScoreService,
 )
-from backend.src.modules.quality_intelligence.schemas import HealthScoreResponse
 
 
 def make_record(**kwargs):

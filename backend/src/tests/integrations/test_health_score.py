@@ -9,8 +9,10 @@ from backend.src.modules.quality_intelligence.schemas import (
 os.environ.setdefault("GEMINI_API_KEY", "fake-key-for-tests")
 
 from unittest.mock import MagicMock, patch
+
 import pytest
 from fastapi.testclient import TestClient
+
 from backend.src.main import app
 
 

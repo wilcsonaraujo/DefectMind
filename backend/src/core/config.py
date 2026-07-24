@@ -1,4 +1,3 @@
-from typing import Optional
 from pydantic_settings import BaseSettings
 
 
@@ -7,7 +6,7 @@ class Settings(BaseSettings):
     ENVIRONMENT: str
     APP_NAME: str
     APP_VERSION: str
-    DATABASE_URL: Optional[str] = None
+    DATABASE_URL: str | None = None
 
     # JWT
     JWT_SECRET_KEY: str = "changeme-insecure-default"
@@ -15,18 +14,18 @@ class Settings(BaseSettings):
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 120
 
     # NEO4J
-    NEO4J_URI: Optional[str] = None
-    NEO4J_USER: Optional[str] = None
-    NEO4J_PASSWORD: Optional[str] = None
+    NEO4J_URI: str | None = None
+    NEO4J_USER: str | None = None
+    NEO4J_PASSWORD: str | None = None
 
     # GEMINI
-    GEMINI_API_KEY: Optional[str] = None
+    GEMINI_API_KEY: str | None = None
 
     # DEEPSEEK
-    DEEPSEEK_API_KEY: Optional[str] = None
+    DEEPSEEK_API_KEY: str | None = None
 
     # GROQ
-    GROQ_API_KEY: Optional[str] = None
+    GROQ_API_KEY: str | None = None
 
     # AI PROVIDER SELECTOR
     AI_PROVIDER: str = "groq"   # Valid values: "deepseek", "gemini", "groq"
