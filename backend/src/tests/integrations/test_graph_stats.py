@@ -1,11 +1,12 @@
-from fastapi.testclient import TestClient
-from backend.src.main import app
 from unittest.mock import MagicMock, patch
 
+from fastapi.testclient import TestClient
+
+from backend.src.main import app
 from backend.src.modules.search.schemas import (
-    NodeByType,
-    MostConnectedNode,
     IsolatedNode,
+    MostConnectedNode,
+    NodeByType,
     StatsResponse,
 )
 

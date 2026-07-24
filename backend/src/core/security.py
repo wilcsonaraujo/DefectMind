@@ -1,7 +1,10 @@
-import bcrypt
 from datetime import datetime, timedelta, timezone
+
+import bcrypt
 from jose import jwt
+
 from backend.src.core.config import settings
+
 
 # Hashing and verifying passwords using bcrypt
 def hash_password(plain_password: str) -> str:

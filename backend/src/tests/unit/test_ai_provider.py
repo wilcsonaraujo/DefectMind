@@ -4,8 +4,10 @@ import os
 os.environ.setdefault("GEMINI_API_KEY", "fake-key-for-tests")
 
 
-import pytest
 from unittest.mock import MagicMock
+
+import pytest
+
 from backend.src.core.ai.gemini_provider import GeminiProvider
 
 

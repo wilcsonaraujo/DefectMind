@@ -1,6 +1,6 @@
-from datetime import datetime
-from typing import Optional
 import uuid
+from datetime import datetime
+
 from pydantic import BaseModel, ConfigDict, EmailStr
 
 
@@ -14,14 +14,14 @@ class HealthService(BaseModel):
     timestamp: datetime
 
 class UserRegisterRequest(BaseModel):
-    full_name: Optional[str] = None
+    full_name: str | None = None
     email: EmailStr
     password: str
-    role: Optional[str] = "viewer"  # Default role is 'viewer'
+    role: str | None = "viewer"  # Default role is 'viewer'
 
 class UserRegisterResponse(BaseModel):
     id: uuid.UUID
-    full_name: Optional[str] = None
+    full_name: str | None = None
     email: str
     role: str
     is_active: bool

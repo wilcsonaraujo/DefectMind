@@ -1,5 +1,5 @@
 import json
-from typing import Any, Dict
+from typing import Any, dict
 
 from openai import OpenAI
 
@@ -18,7 +18,7 @@ class GroqProvider(AIProvider):
         )
         self.model = "llama-3.3-70b-versatile"
 
-    def _call_model(self, prompt: str, config: dict = None) -> str:
+    def _call_model(self, prompt: str, config: dict | None = None) -> str:
         messages = [{"role": "user", "content": prompt}]
         kwargs = {"model": self.model, "messages": messages}
         if config:
@@ -26,7 +26,7 @@ class GroqProvider(AIProvider):
         response = self.client.chat.completions.create(**kwargs)
         return response.choices[0].message.content
 
-    def generate_json(self, prompt: str, schema: Any = None) -> Dict[str, Any]:
+    def generate_json(self, prompt: str, schema: Any = None) -> dict[str, Any]:
         config = {"response_format": {"type": "json_object"}}
         response = self._call_model(prompt=prompt, config=config)
         return json.loads(response.strip())

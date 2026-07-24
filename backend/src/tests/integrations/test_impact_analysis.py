@@ -1,6 +1,8 @@
-from fastapi.testclient import TestClient
-from backend.src.main import app
 from unittest.mock import MagicMock, patch
+
+from fastapi.testclient import TestClient
+
+from backend.src.main import app
 
 
 def test_impact_requires_auth():

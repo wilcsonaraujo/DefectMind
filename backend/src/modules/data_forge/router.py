@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
+
+from backend.src.core.ai.provider_factory import get_ai_provider
 from backend.src.core.dependencies import get_current_user, get_embedding_service
 from backend.src.core.neo4j_db import get_neo4j_session
 from backend.src.models.user import User
 from backend.src.modules.data_forge.schemas import GenerateRequest
-from backend.src.core.ai.provider_factory import get_ai_provider
 from backend.src.modules.data_forge.service import DataForgeService
 
 router = APIRouter(dependencies=[Depends(get_current_user)])
@@ -17,9 +18,9 @@ def generate_data(
     generate: GenerateRequest,
     embedding_service = Depends(get_embedding_service),
     neo4j=Depends(get_neo4j_session),
+    provider = Depends(get_ai_provider),
     current_user: User = Depends(get_current_user)
 ):
-    provider = get_ai_provider()
     service = DataForgeService(ai_provider=provider, neo4j_session=neo4j, embedding_service=embedding_service)
 
     if generate.num_stories < 0:

@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import List
+
 from pydantic import BaseModel
 
 
@@ -71,12 +71,12 @@ class Story(BaseModel):
 
 
 class DataForgeOutput(BaseModel):
-    stories: List[Story]
-    requirements: List[Requirement]
-    testcases: List[TestCase]
-    bug_reports: List[BugReport]
-    incidents: List[Incident]
-    postmortems: List[PostMortem]
+    stories: list[Story]
+    requirements: list[Requirement]
+    testcases: list[TestCase]
+    bug_reports: list[BugReport]
+    incidents: list[Incident]
+    postmortems: list[PostMortem]
 
 
 class GenerateRequest(BaseModel):

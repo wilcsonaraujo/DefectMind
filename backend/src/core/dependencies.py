@@ -1,15 +1,15 @@
 import uuid
+from functools import lru_cache
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError
 from sqlalchemy.orm import Session
-from functools import lru_cache
 
 from backend.src.core.database import get_db
+from backend.src.core.embeddings.embedding_service import EmbeddingService
 from backend.src.core.security import decode_access_token
 from backend.src.models.user import User
-from backend.src.core.embeddings.embedding_service import EmbeddingService
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 

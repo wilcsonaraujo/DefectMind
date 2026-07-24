@@ -1,5 +1,6 @@
 import logging
 
+logger = logging.getLogger(__name__)
 
 def create_vector_indexes(session):
 
@@ -20,6 +21,6 @@ def create_vector_indexes(session):
         """
         try:
             session.run(index_query)
-            logging.info(f"Index {entity['index_name']} created")
+            logger.info(f"Index {entity['index_name']} created")
         except Exception as e:
-            logging.error(f"Error creating index {entity['index_name']}: {e}")
+            logger.error(f"Error creating index {entity['index_name']}: {e}")
