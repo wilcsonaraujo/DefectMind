@@ -1,5 +1,7 @@
 import logging
 
+from neo4j.exceptions import (CypherSyntaxError, DatabaseError)
+
 logger = logging.getLogger(__name__)
 
 def create_vector_indexes(session):
@@ -22,5 +24,9 @@ def create_vector_indexes(session):
         try:
             session.run(index_query)
             logger.info(f"Index {entity['index_name']} created")
-        except Exception as e:
+        except CypherSyntaxError as e:
+                    logger.error(f"CYPHER SYNTAX ERROR in '{entity['index_name']}': {e}")
+                    raise
+        except DatabaseError as e:
             logger.error(f"Error creating index {entity['index_name']}: {e}")
+        

@@ -1,4 +1,5 @@
 import datetime
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import text
@@ -24,9 +25,12 @@ from backend.src.modules.auth.schemas import (
 
 router = APIRouter()
 
+Neo4jSession = Annotated[Session, Depends(get_neo4j_session)]
+DatabaseSession = Annotated[Session, Depends(get_db)]
+CurrentUser = Annotated[User, Depends(get_current_user)]
 
 @router.get("/health", response_model=HealthService, summary="Health Check")
-async def health_get_response(db: Session = Depends(get_db), neo4j=Depends(get_neo4j_session)):
+async def health_get_response(db: DatabaseSession, neo4j: Neo4jSession):
     db.execute(text("SELECT 1"))
     
     neo4j_status = "disconnected"
@@ -51,7 +55,7 @@ async def health_get_response(db: Session = Depends(get_db), neo4j=Depends(get_n
     status_code=201,
     summary="Register New User",
 )
-def user_register(payload: UserRegisterRequest, db: Session = Depends(get_db)):
+def user_register(payload: UserRegisterRequest, db: DatabaseSession):
 
     existing = db.query(User).filter(User.email == payload.email).first()
     if existing:
@@ -74,7 +78,7 @@ def user_register(payload: UserRegisterRequest, db: Session = Depends(get_db)):
 
 
 @router.post("/auth/login", summary="User Login", response_model=TokenResponse)
-def user_login(payload: UserLoginRequest, db: Session = Depends(get_db)):
+def user_login(payload: UserLoginRequest, db: DatabaseSession):
 
     user = db.query(User).filter(User.email == payload.email).first()
 
@@ -94,5 +98,5 @@ def user_login(payload: UserLoginRequest, db: Session = Depends(get_db)):
 
 
 @router.get("/auth/me", response_model=UserRegisterResponse, summary="Get Current User")
-def get_me(current_user: User = Depends(get_current_user)):
+def get_me(current_user: CurrentUser):
     return current_user

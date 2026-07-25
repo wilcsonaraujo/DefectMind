@@ -1,8 +1,12 @@
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, HTTPException
+from requests import Session
 
 from backend.src.core.ai.provider_factory import get_ai_provider
 from backend.src.core.dependencies import get_current_user
 from backend.src.core.neo4j_db import get_neo4j_session
+from backend.src.models.user import User
 from backend.src.modules.quality_intelligence.health_score_service import (
     HealthScoreService,
 )
@@ -13,6 +17,9 @@ from backend.src.modules.quality_intelligence.schemas import (
 
 router = APIRouter(dependencies=[Depends(get_current_user)])
 
+Neo4jSession = Annotated[Session, Depends(get_neo4j_session)]
+CurrentUser = Annotated[User, Depends(get_current_user)]
+Provider = Annotated[Session, Depends(get_ai_provider)]
 
 @router.post(
     "/health-score",
@@ -21,8 +28,8 @@ router = APIRouter(dependencies=[Depends(get_current_user)])
 )
 def generate_health_score(
     generate: HealthScoreRequest,
-    neo4j=Depends(get_neo4j_session),
-    provider = Depends(get_ai_provider)
+    neo4j: Neo4jSession,
+    provider: Provider
 ):
     service = HealthScoreService(neo4j_session=neo4j, ai_provider=provider)
 

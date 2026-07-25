@@ -1,4 +1,7 @@
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, Query
+from requests import Session
 
 from backend.src.core.dependencies import get_current_user, get_embedding_service
 from backend.src.core.neo4j_db import get_neo4j_session
@@ -15,15 +18,18 @@ from backend.src.modules.search.semantic_search_service import SemanticSearchSer
 
 router = APIRouter()
 
+Neo4jSession = Annotated[Session, Depends(get_neo4j_session)]
+CurrentUser = Annotated[User, Depends(get_current_user)]
+EmbeddingService = Annotated[Session, Depends(get_embedding_service)]
 
 @router.post(
     "/semantic", response_model=SemanticSearchResponse, summary="Semantic search"
 )
 def semanticSearchService(
     request: SemanticSearchRequest,
-    embedding_service=Depends(get_embedding_service),
-    neo4j=Depends(get_neo4j_session),
-    current_user: User = Depends(get_current_user),
+    embedding_service: EmbeddingService,
+    neo4j: Neo4jSession,
+    current_user: CurrentUser,
 ):
     service = SemanticSearchService(
         neo4j_session=neo4j, embedding_service=embedding_service
@@ -42,9 +48,9 @@ def semanticSearchService(
 )
 def impact_analysis_search_service(
     node_id: str,
-    depth: int = Query(default=5, gt=0, le=10),
-    neo4j=Depends(get_neo4j_session),
-    current_user: User = Depends(get_current_user),
+    neo4j: Neo4jSession,
+    current_user: CurrentUser,
+    depth: int = Query(default=5, gt=0, le=10)
 ):
     service = ImpactAnalysisService(neo4j_session=neo4j)
     result = service.get_impact(node_id, depth)
@@ -54,7 +60,8 @@ def impact_analysis_search_service(
 
 @router.get("/graph-stats", response_model=StatsResponse, summary="Get graph statistics")
 def graph_stats_service(
-    neo4j=Depends(get_neo4j_session), current_user: User = Depends(get_current_user)
+    neo4j: Neo4jSession,
+    current_user: CurrentUser,
 ):
     service = GraphService(neo4j_session=neo4j)
     result = service._get_graph_stats()

@@ -1,4 +1,5 @@
 from collections import Counter
+import json
 
 from backend.src.modules.quality_intelligence.base_service import (
     QualityIntelligenceBaseService,
@@ -92,12 +93,14 @@ class HealthScoreService(QualityIntelligenceBaseService):
         """
         try:
             response = self._call_llm(prompt)
-            ai_response = response.parse_json()
+            ai_response = json.loads(response)
             return HealthScoreResponse(
                 evidence=ai_response.get("evidence", []),
                 ai_analysis=ai_response.get("ai_analysis", ""),
                 recommendations=ai_response.get("recommendations", []),
                 risk_classification=ai_response.get("risk_classification", "LOW"),
             )
+        except json.JSONDecodeError as e:
+            raise ValueError(f"Failed to decode AI response: {e}")
         except Exception as e:
             raise Exception(f"Error occurred while getting AI response: {e}")

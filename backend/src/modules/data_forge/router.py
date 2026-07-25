@@ -1,4 +1,7 @@
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, HTTPException
+from requests import Session
 
 from backend.src.core.ai.provider_factory import get_ai_provider
 from backend.src.core.dependencies import get_current_user, get_embedding_service
@@ -9,6 +12,10 @@ from backend.src.modules.data_forge.service import DataForgeService
 
 router = APIRouter(dependencies=[Depends(get_current_user)])
 
+Neo4jSession = Annotated[Session, Depends(get_neo4j_session)]
+CurrentUser = Annotated[User, Depends(get_current_user)]
+EmbeddingService = Annotated[Session, Depends(get_embedding_service)]
+Provider = Annotated[Session, Depends(get_ai_provider)]
 
 @router.post(
     "/generate",
@@ -16,10 +23,10 @@ router = APIRouter(dependencies=[Depends(get_current_user)])
 )
 def generate_data(
     generate: GenerateRequest,
-    embedding_service = Depends(get_embedding_service),
-    neo4j=Depends(get_neo4j_session),
-    provider = Depends(get_ai_provider),
-    current_user: User = Depends(get_current_user)
+    embedding_service: EmbeddingService,
+    neo4j: Neo4jSession,
+    provider: Provider,
+    current_user: CurrentUser
 ):
     service = DataForgeService(ai_provider=provider, neo4j_session=neo4j, embedding_service=embedding_service)
 
