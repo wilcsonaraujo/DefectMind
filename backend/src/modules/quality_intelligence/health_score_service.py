@@ -1,5 +1,5 @@
-from collections import Counter
 import json
+from collections import Counter
 
 from backend.src.modules.quality_intelligence.base_service import (
     QualityIntelligenceBaseService,
@@ -84,7 +84,7 @@ class HealthScoreService(QualityIntelligenceBaseService):
             return None
 
         context = self._build_context(health_score_data.get("connected_nodes", {}))
-    
+
         return self._build_prompt(context, health_score_data)
 
     def get_ai_response(self, prompt: str) -> HealthScoreResponse:
@@ -102,5 +102,3 @@ class HealthScoreService(QualityIntelligenceBaseService):
             )
         except json.JSONDecodeError as e:
             raise ValueError(f"Failed to decode AI response: {e}")
-        except Exception as e:
-            raise Exception(f"Error occurred while getting AI response: {e}")

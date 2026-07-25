@@ -1,5 +1,6 @@
 import logging
 
+logger = logging.getLogger(__name__)
 
 class QualityIntelligenceBaseService:
     def __init__(self, db_session, ai_provider):
@@ -8,7 +9,7 @@ class QualityIntelligenceBaseService:
 
     def _get_label(self, node):
         label = (
-            sorted(node.labels)[0]
+            min(node.labels)
             if hasattr(node, "labels") and node.labels
             else "Artifact"
         )
@@ -63,5 +64,5 @@ class QualityIntelligenceBaseService:
             response_llm = self.ai_provider.generate_response(prompt, temperature=0.1)
             return response_llm
         except Exception as e:
-            logging.error(f"Error occurred while calling LLM: {e}")
+            logger.error(f"Error occurred while calling LLM: {e}")
             raise
