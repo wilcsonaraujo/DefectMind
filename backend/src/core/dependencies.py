@@ -1,5 +1,6 @@
 import uuid
 from functools import lru_cache
+from typing import Annotated
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
@@ -12,6 +13,8 @@ from backend.src.core.security import decode_access_token
 from backend.src.models.user import User
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+
+DatabaseSession = Annotated[Session, Depends(get_db)]
 
 def validate_current_user(token: str, db: Session) -> User:
     """Validate the current user from the token."""
@@ -37,8 +40,8 @@ def validate_current_user(token: str, db: Session) -> User:
     return user
 
 def get_current_user(
-    token: str = Depends(oauth2_scheme),
-    db: Session = Depends(get_db),
+    db: DatabaseSession,
+    token: str = Depends(oauth2_scheme)    
 ) -> User:
     """Get the current user from the token."""
     return validate_current_user(token, db)

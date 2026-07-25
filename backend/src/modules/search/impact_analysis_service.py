@@ -37,7 +37,7 @@ class ImpactAnalysisService:
             start = record["start"]
             connected = record["connected"]
             if start["id"] not in nodes_map:
-                label = list(start.labels)[0] if start.labels else "Unknown"
+                label = next(iter(start.labels)) if start.labels else "Unknown"
                 props = {k: v for k, v in dict(start).items() if k != "embedding"}
                 nodes_map[start["id"]] = ImpactNode(
                     id=start["id"],
@@ -47,7 +47,7 @@ class ImpactAnalysisService:
 
             connected = record["connected"]
             if connected["id"] not in nodes_map:
-                label = list(connected.labels)[0] if connected.labels else "Unknown"
+                label = next(iter(connected.labels)) if connected.labels else "Unknown"
                 props = {k: v for k, v in dict(connected).items() if k != "embedding"}
                 nodes_map[connected["id"]] = ImpactNode(
                     id=connected["id"],

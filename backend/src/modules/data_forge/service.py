@@ -9,6 +9,7 @@ from backend.src.core.embeddings.embedding_service import EmbeddingService
 from backend.src.modules.data_forge.prompts import build_prompt
 from backend.src.modules.data_forge.schemas import DataForgeOutput
 
+logger = logging.getLogger(__name__)
 
 class DataForgeService:
 
@@ -194,7 +195,7 @@ class DataForgeService:
             try:
                 batch = DataForgeOutput.model_validate(response_llm)
             except ValidationError as e:
-                logging.warning(f"Batch {iteration} failed validation: {e}")
+                logger.warning(f"Batch {iteration} failed validation: {e}")
                 totals["batches_failed"] += 1
                 continue
 

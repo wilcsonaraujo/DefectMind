@@ -1,6 +1,6 @@
 import logging
 
-from neo4j.exceptions import (CypherSyntaxError, DatabaseError)
+from neo4j.exceptions import CypherSyntaxError, DatabaseError
 
 logger = logging.getLogger(__name__)
 
