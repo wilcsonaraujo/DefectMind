@@ -84,3 +84,12 @@ def provider():
         mock_client = MagicMock()
         mock_client_class.return_value = mock_client
         yield GeminiProvider(api_key="fake-key")
+
+@pytest.fixture(autouse=True)
+def mock_ai_provider():
+    """Mock global do provedor de IA para todos os testes."""
+    with patch("backend.src.core.ai.provider_factory.get_ai_provider") as mock:
+        mock_provider = MagicMock()
+        mock_provider.generate.return_value = "Mock AI response"
+        mock.return_value = mock_provider
+        yield mock

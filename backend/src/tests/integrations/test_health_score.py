@@ -19,6 +19,7 @@ from backend.src.main import app
 @pytest.fixture
 def client(db):
     """Reuses the conftest authenticated client."""
+    app.dependency_overrides.clear()
     return TestClient(app)
 
 
@@ -32,6 +33,14 @@ def auth_headers(client):
     token = response.json().get("access_token", "fake-token")
     return {"Authorization": f"Bearer {token}"}
 
+@pytest.fixture(autouse=True)
+def mock_ai_provider():
+    """Mock automático do provedor de IA para todos os testes."""
+    with patch("backend.src.core.ai.provider_factory.get_ai_provider") as mock:
+        mock_provider = MagicMock()
+        mock_provider.generate.return_value = "Mock AI response"
+        mock.return_value = mock_provider
+        yield mock
 
 MOCK_HEALTH_STATS = HealthScoreResponse(
     evidence=[
@@ -67,6 +76,7 @@ def test_health_score_returns_200_with_valid_token():
     with patch(
         "backend.src.modules.quality_intelligence.router.HealthScoreService"
     ) as MockService:
+        # Mock service methods to return expected values
         mock_instance = MagicMock()
         mock_instance.build_health_score_prompt.return_value = "Test Prompt"
         mock_instance.get_ai_response.return_value = MOCK_HEALTH_STATS.model_dump()
@@ -97,7 +107,6 @@ def test_health_score_returns_200_with_valid_token():
         assert "recommendations" in data
         assert "risk_classification" in data
 
-    app.dependency_overrides.clear()
 
 def test_health_score_returns_404_for_nonexistent_node():
     """The endpoint must return a 404 when the node does not exist."""
