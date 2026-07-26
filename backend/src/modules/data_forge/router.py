@@ -6,9 +6,13 @@ from neo4j import Session
 from backend.src.core.ai.provider import AIProvider
 from backend.src.core.ai.provider_factory import get_ai_provider
 from backend.src.core.dependencies import get_current_user, get_embedding_service
+<<<<<<< HEAD
 from backend.src.core.embeddings.embedding_service import (
     EmbeddingService as EmbeddingServiceType,
 )
+=======
+from backend.src.core.embeddings.embedding_service import EmbeddingService as EmbeddingServiceType
+>>>>>>> 7b421f09b130e8cf948e9520a9df5225518e0eed
 from backend.src.core.neo4j_db import get_required_neo4j_session
 from backend.src.models.user import User
 from backend.src.modules.data_forge.schemas import GenerateRequest
