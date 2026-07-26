@@ -9,6 +9,7 @@ os.environ.setdefault("JWT_SECRET_KEY", "test-secret-key-insecure")
 os.environ.setdefault("NEO4J_URI", "")
 os.environ.setdefault("NEO4J_USER", "")
 os.environ.setdefault("NEO4J_PASSWORD", "")
+os.environ.setdefault("GROQ_API_KEY", "fake-key-for-tests")
 
 
 from unittest.mock import MagicMock, patch
