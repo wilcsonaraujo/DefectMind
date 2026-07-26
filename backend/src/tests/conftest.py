@@ -1,5 +1,7 @@
 import os
 
+from backend.src.core.ai.provider_factory import get_ai_provider
+
 # MUST be set before any project imports — config.py reads these at module load time
 os.environ.setdefault("DATABASE_URL", "sqlite:///:memory:")
 os.environ.setdefault("ENVIRONMENT", "test")
