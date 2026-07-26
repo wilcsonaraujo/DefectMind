@@ -1,7 +1,5 @@
 import os
 
-from backend.src.core.ai.provider_factory import get_ai_provider
-
 # MUST be set before any project imports — config.py reads these at module load time
 os.environ.setdefault("DATABASE_URL", "sqlite:///:memory:")
 os.environ.setdefault("ENVIRONMENT", "test")
@@ -23,6 +21,7 @@ from starlette.testclient import TestClient
 # Import models to ensure they are registered with SQLAlchemy
 import backend.src.models  # noqa: F401
 from backend.src.core.ai.gemini_provider import GeminiProvider
+from backend.src.core.ai.provider_factory import get_ai_provider
 from backend.src.core.database import Base, get_db
 from backend.src.core.neo4j_db import get_neo4j_session
 from backend.src.main import app
