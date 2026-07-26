@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Search, Plus, Link2 } from "lucide-react";
+import { Search } from "lucide-react";
 import { AppLayout } from "@/components/app-layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -20,7 +20,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { AlertCircle, Loader2 } from "lucide-react";
 import {
   getStories, getRequirements, getTestCases,
@@ -69,34 +70,35 @@ const types: (ArtifactType | "All")[] = [
 function ArtifactsPage() {
   const [q, setQ] = useState("");
   const [type, setType] = useState<ArtifactType | "All">("All");
-  const [allArtifacts, setAllArtifacts] = useState<ArtifactRow[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const { t } = useLang();
 
-  useEffect(() => {
-    Promise.all([
-      getStories(),
-      getRequirements(),
-      getTestCases(),
-      getBugReports(),
-      getIncidents(),
-      getPostMortems(),
-    ])
-      .then(([stories, reqs, tests, bugs, incidents, postmortems]) => {
-        const rows: ArtifactRow[] = [
-          ...stories.map((a) => ({ id: a.id, type: "Story" as ArtifactType, name: a.title, date: a.created_at })),
-          ...reqs.map((a) => ({ id: a.id, type: "Requirement" as ArtifactType, name: a.title, date: a.created_at })),
-          ...tests.map((a) => ({ id: a.id, type: "Test Case" as ArtifactType, name: a.title, date: a.created_at })),
-          ...bugs.map((a) => ({ id: a.id, type: "Bug" as ArtifactType, name: a.title, date: a.created_at })),
-          ...incidents.map((a) => ({ id: a.id, type: "Incident" as ArtifactType, name: a.title, date: a.created_at })),
-          ...postmortems.map((a) => ({ id: a.id, type: "Post-Mortem" as ArtifactType, name: a.title, date: a.created_at })),
-        ];
-        setAllArtifacts(rows);
-      })
-      .catch((err: Error) => setError(err.message))
-      .finally(() => setLoading(false));
-  }, []);
+  const {
+    data: allArtifacts = [],
+    isLoading: loading,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: ["artifacts", "all"],
+    queryFn: async () => {
+      const [stories, reqs, tests, bugs, incidents, postmortems] = await Promise.all([
+        getStories(),
+        getRequirements(),
+        getTestCases(),
+        getBugReports(),
+        getIncidents(),
+        getPostMortems(),
+      ]);
+      const rows: ArtifactRow[] = [
+        ...stories.map((a) => ({ id: a.id, type: "Story" as ArtifactType, name: a.title, date: a.created_at })),
+        ...reqs.map((a) => ({ id: a.id, type: "Requirement" as ArtifactType, name: a.title, date: a.created_at })),
+        ...tests.map((a) => ({ id: a.id, type: "Test Case" as ArtifactType, name: a.title, date: a.created_at })),
+        ...bugs.map((a) => ({ id: a.id, type: "Bug" as ArtifactType, name: a.title, date: a.created_at })),
+        ...incidents.map((a) => ({ id: a.id, type: "Incident" as ArtifactType, name: a.title, date: a.created_at })),
+        ...postmortems.map((a) => ({ id: a.id, type: "Post-Mortem" as ArtifactType, name: a.title, date: a.created_at })),
+      ];
+      return rows;
+    },
+  });
 
   const rows = allArtifacts.filter(
     (a) =>
@@ -121,8 +123,10 @@ function ArtifactsPage() {
       <AppLayout title={t("artifacts.title")} subtitle={t("artifacts.subtitle")}>
         <div className="flex h-64 flex-col items-center justify-center gap-3">
           <AlertCircle className="h-8 w-8 text-destructive" />
-          <p className="text-sm text-destructive">{error}</p>
-          <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
+          <p className="text-sm text-destructive">
+            {error instanceof Error ? error.message : "Erro desconhecido"}
+          </p>
+          <Button variant="outline" size="sm" onClick={() => refetch()}>
             Tentar novamente
           </Button>
         </div>
@@ -134,11 +138,6 @@ function ArtifactsPage() {
     <AppLayout
       title={t("artifacts.title")}
       subtitle={t("artifacts.subtitle")}
-/*       actions={
-        <Button>
-          <Plus className="h-4 w-4" /> {t("artifacts.new")}
-        </Button>
-      } */
     >
       <Card>
         <CardContent className="p-4">

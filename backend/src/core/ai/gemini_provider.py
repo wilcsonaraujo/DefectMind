@@ -22,9 +22,10 @@ class GeminiProvider(AIProvider):
         )
         return response.text
 
-    def generate_json(self, prompt: str, schema: Any = None) -> dict[str, Any]:
+    def generate_json(self, prompt: str, schema: Any = None, temperature: float = 0.3) -> dict[str, Any]:
 
-        config_args = {"response_mime_type": "application/json"}
+        config_args = {"response_mime_type": "application/json",
+                       "temperature": temperature}
 
         if schema:
             config_args["response_schema"] = schema

@@ -3,10 +3,10 @@ from datetime import datetime, timezone
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
-from requests import Session
+from neo4j import Session
 
 from backend.src.core.dependencies import get_current_user
-from backend.src.core.neo4j_db import get_neo4j_session
+from backend.src.core.neo4j_db import get_required_neo4j_session
 from backend.src.models.user import User
 from backend.src.modules.artifacts.schemas import (
     BugReportRequest,
@@ -25,7 +25,7 @@ from backend.src.modules.artifacts.schemas import (
 
 router = APIRouter(dependencies=[Depends(get_current_user)])
 
-Neo4jSession = Annotated[Session, Depends(get_neo4j_session)]
+Neo4jSession = Annotated[Session, Depends(get_required_neo4j_session)]
 CurrentUser = Annotated[User, Depends(get_current_user)]
 
 @router.get(

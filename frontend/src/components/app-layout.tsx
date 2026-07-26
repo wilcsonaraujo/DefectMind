@@ -1,5 +1,6 @@
-import { type ReactNode, useEffect, useState } from "react";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { type ReactNode, useState } from "react";
+import { Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import {
   LayoutDashboard,
   Package,
@@ -25,8 +26,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useLang } from "@/lib/i18n";
 import { useAuth } from "@/hooks/use-auth";
-import { getUserFromToken } from "@/lib/auth-utils";
-import { getHealthStatus, type HealthResponse } from "@/lib/api";
+import { getHealthStatus, type UserResponse } from "@/lib/api";
 
 const navItems = [
   { key: "nav.dashboard",  icon: LayoutDashboard, to: "/"           },
@@ -38,7 +38,15 @@ const navItems = [
   { key: "nav.users",      icon: Users,           to: "/users"      },
 ] as const;
 
-function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
+function SidebarContent({
+  onNavigate,
+  user,
+  onLogout,
+}: {
+  onNavigate?: () => void;
+  user: UserResponse | null;
+  onLogout: () => void;
+}) {
   const { t } = useLang();
   return (
     <div className="flex h-full flex-col">
@@ -61,17 +69,20 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
           </Link>
         ))}
       </nav>
-      <UserFooter />
+      <UserFooter user={user} onLogout={onLogout} />
     </div>
   );
 }
 
-function UserFooter() {
+function UserFooter({
+  user,
+  onLogout,
+}: {
+  user: UserResponse | null;
+  onLogout: () => void;
+}) {
   const { t } = useLang();
-  const navigate = useNavigate();
-  const { logout } = useAuth();
-  const user = getUserFromToken();
-  const displayName = user?.name ?? "Usuário";
+  const displayName = user?.full_name || user?.email || "Usuário";
   const displayEmail = user?.email ?? "";
   const initials = displayName
     .split(" ")
@@ -90,7 +101,7 @@ function UserFooter() {
           <p className="truncate text-[11px] text-muted-foreground">{displayEmail}</p>
         </div>
         <button
-          onClick={() => logout(navigate)}
+          onClick={onLogout}
           title={t("nav.logout")}
           className="shrink-0 rounded-md p-1 text-muted-foreground transition-colors hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
         >
@@ -124,23 +135,20 @@ export function AppLayout({
   children: ReactNode;
 }) {
   const [open, setOpen] = useState(false);
-  const [health, setHealth] = useState<HealthResponse | null>(null);
   const { t, lang, setLang } = useLang();
+  const { user, logout } = useAuth();
+  const { data: health } = useQuery({
+    queryKey: ["health"],
+    queryFn: getHealthStatus,
+  });
 
   // Dados do usuário para o avatar do header
-  const user = getUserFromToken();
-  const initials = (user?.name ?? "U")
+  const initials = (user?.full_name || user?.email || "U")
     .split(" ")
     .map((n: string) => n[0])
     .join("")
     .toUpperCase()
     .slice(0, 2);
-
-  useEffect(() => {
-    getHealthStatus()
-      .then(setHealth)
-      .catch(() => setHealth(null));
-  }, []);
 
   const envValue = health?.environment ?? "—";
   const versionValue = health?.version ?? "—";
@@ -155,7 +163,7 @@ export function AppLayout({
   return (
     <div className="min-h-screen w-full bg-background text-foreground">
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 border-r border-sidebar-border bg-sidebar lg:block">
-        <SidebarContent />
+        <SidebarContent user={user} onLogout={logout} />
       </aside>
       {open && (
         <div className="fixed inset-0 z-50 lg:hidden">
@@ -167,7 +175,7 @@ export function AppLayout({
             >
               <X className="h-5 w-5" />
             </button>
-            <SidebarContent onNavigate={() => setOpen(false)} />
+            <SidebarContent onNavigate={() => setOpen(false)} user={user} onLogout={logout} />
           </aside>
         </div>
       )}

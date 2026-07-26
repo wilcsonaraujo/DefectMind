@@ -92,8 +92,7 @@ class HealthScoreService(QualityIntelligenceBaseService):
         Get the AI response for the health score analysis.
         """
         try:
-            response = self._call_llm(prompt)
-            ai_response = json.loads(response)
+            ai_response = self._call_llm(prompt)
             return HealthScoreResponse(
                 evidence=ai_response.get("evidence", []),
                 ai_analysis=ai_response.get("ai_analysis", ""),

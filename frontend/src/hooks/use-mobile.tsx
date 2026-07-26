@@ -1,5 +1,8 @@
 import * as React from "react";
 
+// Não importado em nenhum lugar hoje (verificado) — deixado aqui pronto
+// pra quando alguma tela precisar de layout responsivo baseado em JS
+// em vez de só CSS. Se não for usar isso tão cedo, pode remover.
 const MOBILE_BREAKPOINT = 768;
 
 export function useIsMobile() {

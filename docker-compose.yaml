@@ -21,6 +21,8 @@ services:
       dockerfile: frontend/Dockerfile   # Dockerfile path
     ports:
       - "3000:3000"                     # host:container
+    env_file:
+      - .env                            # environment variables file (ex.: VITE_API_URL)
     depends_on:
       - backend
       - neo4j

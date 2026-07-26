@@ -1,3 +1,4 @@
+import json
 from unittest.mock import ANY, MagicMock, call  # noqa: F401
 
 import pytest
@@ -123,7 +124,7 @@ class TestAIResponse:
         response = service._call_llm(prompt)
         assert response == expected_response
         service.ai_provider.generate_response.assert_called_once_with(
-            ANY, temperature=0.1
+            ANY
         )
 
     def test_call_llm_with_exception(self, service):
@@ -135,12 +136,13 @@ class TestAIResponse:
             service._call_llm(prompt)
         assert "Error occurred while calling LLM" in str(excinfo.value)
 
-    def test_call_llm_returns_non_json_response(self, service):
+    def test_call_llm_propagates_json_decode_error(self, service):
         prompt = "Sample prompt"
-        non_json_response = "This is not a JSON response"
-        service.ai_provider.generate_response.return_value = non_json_response
-        response = service._call_llm(prompt)
-        assert response == non_json_response
+        service.ai_provider.generate_json.side_effect = json.JSONDecodeError(
+            "Expecting value", "not json", 0
+        )
+        with pytest.raises(json.JSONDecodeError):
+            service._call_llm(prompt)
 
     def test_call_llm_returns_incomplete_json_response(self, service):
         prompt = "Sample prompt"

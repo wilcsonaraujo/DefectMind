@@ -1,21 +1,23 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
-from requests import Session
+from neo4j import Session
 
 from backend.src.core.ai.provider_factory import get_ai_provider
 from backend.src.core.dependencies import get_current_user, get_embedding_service
-from backend.src.core.neo4j_db import get_neo4j_session
+from backend.src.core.neo4j_db import get_required_neo4j_session
 from backend.src.models.user import User
 from backend.src.modules.data_forge.schemas import GenerateRequest
 from backend.src.modules.data_forge.service import DataForgeService
+from backend.src.core.ai.provider import AIProvider
+from backend.src.core.embeddings.embedding_service import EmbeddingService as EmbeddingServiceType
 
 router = APIRouter(dependencies=[Depends(get_current_user)])
 
-Neo4jSession = Annotated[Session, Depends(get_neo4j_session)]
+Neo4jSession = Annotated[Session, Depends(get_required_neo4j_session)]
 CurrentUser = Annotated[User, Depends(get_current_user)]
-EmbeddingService = Annotated[Session, Depends(get_embedding_service)]
-Provider = Annotated[Session, Depends(get_ai_provider)]
+EmbeddingService = Annotated[EmbeddingServiceType, Depends(get_embedding_service)]
+Provider = Annotated[AIProvider, Depends(get_ai_provider)]
 
 @router.post(
     "/generate",
@@ -34,7 +36,7 @@ def generate_data(
         raise HTTPException(
             status_code=422, detail="The number of stories must be greater than zero."
         )
-    if generate.batch_size <= 0 or generate.batch_size >= generate.num_stories:
+    if generate.batch_size <= 0 or generate.batch_size > generate.num_stories:
         raise HTTPException(
             status_code=422,
             detail="The number of stories must be greater than zero and less than stories number.",

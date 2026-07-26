@@ -32,9 +32,10 @@ class DeepSeekProvider(AIProvider):
         response = self.client.chat.completions.create(**kwargs)
         return response.choices[0].message.content
 
-    def generate_json(self, prompt: str, schema: Any = None) -> dict[str, Any]:
+    def generate_json(self, prompt: str, schema: Any = None, temperature: float = 0.3) -> dict[str, Any]:
         config = {
             "response_format": {"type": "json_object"},
+            "temperature": temperature
         }
 
         response = self._call_model(prompt=prompt, config=config)

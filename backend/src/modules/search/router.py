@@ -1,10 +1,12 @@
+import logging
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query
-from requests import Session
+from fastapi import APIRouter, Depends, HTTPException, Query
+from neo4j import Session
+from backend.src.core.embeddings.embedding_service import EmbeddingService as EmbeddingServiceType
 
 from backend.src.core.dependencies import get_current_user, get_embedding_service
-from backend.src.core.neo4j_db import get_neo4j_session
+from backend.src.core.neo4j_db import get_required_neo4j_session
 from backend.src.models.user import User
 from backend.src.modules.search.graph import GraphService
 from backend.src.modules.search.impact_analysis_service import ImpactAnalysisService
@@ -16,11 +18,13 @@ from backend.src.modules.search.schemas import (
 )
 from backend.src.modules.search.semantic_search_service import SemanticSearchService
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter()
 
-Neo4jSession = Annotated[Session, Depends(get_neo4j_session)]
+Neo4jSession = Annotated[Session, Depends(get_required_neo4j_session)]
 CurrentUser = Annotated[User, Depends(get_current_user)]
-EmbeddingService = Annotated[Session, Depends(get_embedding_service)]
+EmbeddingService = Annotated[EmbeddingServiceType, Depends(get_embedding_service)]
 
 @router.post(
     "/semantic", response_model=SemanticSearchResponse, summary="Semantic search"
@@ -53,9 +57,20 @@ def impact_analysis_search_service(
     depth: int = Query(default=5, gt=0, le=10)
 ):
     service = ImpactAnalysisService(neo4j_session=neo4j)
-    result = service.get_impact(node_id, depth)
 
-    return result
+    try:
+        result = service.get_impact(node_id, depth)
+        return result
+    except ValueError as e:
+            logger.error(f"Failed to parse AI response for node {node_id}: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    except Exception:
+        logger.exception(
+            f"Unexpected error generating impact analysis for node {node_id}"
+        )
+        raise HTTPException(
+            status_code=500, detail="Error occurred while generating impact analysis."
+        )
 
 
 @router.get("/graph-stats", response_model=StatsResponse, summary="Get graph statistics")
