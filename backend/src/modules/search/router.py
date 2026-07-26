@@ -3,9 +3,9 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from neo4j import Session
-from backend.src.core.embeddings.embedding_service import EmbeddingService as EmbeddingServiceType
 
 from backend.src.core.dependencies import get_current_user, get_embedding_service
+from backend.src.core.embeddings.embedding_service import EmbeddingService as EmbeddingServiceType
 from backend.src.core.neo4j_db import get_required_neo4j_session
 from backend.src.models.user import User
 from backend.src.modules.search.graph import GraphService
@@ -61,9 +61,9 @@ def impact_analysis_search_service(
     try:
         result = service.get_impact(node_id, depth)
         return result
-    except ValueError as e:
-            logger.error(f"Failed to parse AI response for node {node_id}: {e}")
-            raise HTTPException(status_code=500, detail=str(e))
+    except (ValueError, TypeError) as e:
+        logger.error(f"Invalid depth for impact analysis on node {node_id}: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception:
         logger.exception(
             f"Unexpected error generating impact analysis for node {node_id}"

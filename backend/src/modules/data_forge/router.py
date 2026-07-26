@@ -3,14 +3,14 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException
 from neo4j import Session
 
+from backend.src.core.ai.provider import AIProvider
 from backend.src.core.ai.provider_factory import get_ai_provider
 from backend.src.core.dependencies import get_current_user, get_embedding_service
+from backend.src.core.embeddings.embedding_service import EmbeddingService as EmbeddingServiceType
 from backend.src.core.neo4j_db import get_required_neo4j_session
 from backend.src.models.user import User
 from backend.src.modules.data_forge.schemas import GenerateRequest
 from backend.src.modules.data_forge.service import DataForgeService
-from backend.src.core.ai.provider import AIProvider
-from backend.src.core.embeddings.embedding_service import EmbeddingService as EmbeddingServiceType
 
 router = APIRouter(dependencies=[Depends(get_current_user)])
 

@@ -1,7 +1,6 @@
 from fastapi import HTTPException
 
 from backend.src.core.neo4j_utils import get_node_label
-
 from backend.src.modules.search.schemas import (
     ImpactAnalysisResponse,
     ImpactEdge,
@@ -15,7 +14,7 @@ class ImpactAnalysisService:
 
     def get_impact(self, node_id: str, depth: int):
         if not isinstance(depth, int):
-            raise ValueError("depth must be an integer")
+            raise TypeError("depth must be an integer")
         if not 1 <= depth <= 10:
             raise ValueError("depth must be between 1 and 10")
 

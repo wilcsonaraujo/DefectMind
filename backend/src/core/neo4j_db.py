@@ -2,7 +2,6 @@ from typing import Annotated
 
 from fastapi import Depends, HTTPException, status
 from neo4j import GraphDatabase, Session
-from requests import session
 
 from backend.src.core.config import settings
 
