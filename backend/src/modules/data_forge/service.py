@@ -1,24 +1,38 @@
-from datetime import datetime, timezone
 import logging
 import uuid
+from datetime import datetime, timezone
 
 from pydantic import ValidationError
+
 from backend.src.core.ai.provider import AIProvider
 from backend.src.core.embeddings.embedding_service import EmbeddingService
 from backend.src.modules.data_forge.prompts import build_prompt
 from backend.src.modules.data_forge.schemas import DataForgeOutput
 
+logger = logging.getLogger(__name__)
+
 
 class DataForgeService:
 
     def __init__(
-        self, ai_provider: AIProvider, neo4j_session, embedding_service: EmbeddingService
+        self,
+        ai_provider: AIProvider,
+        neo4j_session,
+        embedding_service: EmbeddingService,
     ):
         self.ai = ai_provider
         self.db = neo4j_session
         self.embedding = embedding_service
 
     def _insert_batch(self, batch: DataForgeOutput):
+        """
+        If anything raises inside _insert_batch_tx (including a KeyError
+        from a hallucinated temp_id), the driver rolls back automatically —
+        no orphan nodes without their relationships.
+        """
+        self.db.execute_write(self._insert_batch_tx, batch)
+
+    def _insert_batch_tx(self, tx, batch: DataForgeOutput):
         created_at = datetime.now(timezone.utc).isoformat()
 
         story_id_map = {s.temp_id: str(uuid.uuid4()) for s in batch.stories}
@@ -49,7 +63,7 @@ class DataForgeService:
 
         for story in batch.stories:
             uuid_real = story_id_map[story.temp_id]
-            self.db.run(
+            tx.run(
                 stories_query,
                 id=uuid_real,
                 title=story.title,
@@ -59,18 +73,20 @@ class DataForgeService:
             )
         for requirement in batch.requirements:
             uuid_real = requirement_id_map[requirement.temp_id]
-            self.db.run(
+            tx.run(
                 requirements_query,
                 id=uuid_real,
                 title=requirement.title,
                 description=requirement.description,
                 priority=requirement.priority.value,
-                embedding=self.embedding.encode(f"{requirement.title} {requirement.description}"),
+                embedding=self.embedding.encode(
+                    f"{requirement.title} {requirement.description}"
+                ),
                 created_at=created_at,
             )
         for testcase in batch.testcases:
             uuid_real = testcase_id_map[testcase.temp_id]
-            self.db.run(
+            tx.run(
                 testcases_query,
                 id=uuid_real,
                 title=testcase.title,
@@ -83,7 +99,7 @@ class DataForgeService:
             )
         for bug_report in batch.bug_reports:
             uuid_real = bugreport_id_map[bug_report.temp_id]
-            self.db.run(
+            tx.run(
                 bug_reports_query,
                 id=uuid_real,
                 title=bug_report.title,
@@ -96,7 +112,7 @@ class DataForgeService:
             )
         for incident in batch.incidents:
             uuid_real = incident_id_map[incident.temp_id]
-            self.db.run(
+            tx.run(
                 incidents_query,
                 id=uuid_real,
                 title=incident.title,
@@ -109,7 +125,7 @@ class DataForgeService:
             )
         for postmortem in batch.postmortems:
             uuid_real = postmortems_id_map[postmortem.temp_id]
-            self.db.run(
+            tx.run(
                 postmortems_query,
                 id=uuid_real,
                 title=postmortem.title,
@@ -129,7 +145,7 @@ class DataForgeService:
             MATCH (s:Story {id: $story_id}), (r:Requirement {id: $req_id})
             MERGE (s)-[:HAS_REQUIREMENT]->(r)
             """
-            self.db.run(relation_query, story_id=uuid_mother, req_id=uuid_daughter)
+            tx.run(relation_query, story_id=uuid_mother, req_id=uuid_daughter)
 
         for testcase in batch.testcases:
             uuid_mother = requirement_id_map[testcase.requirement_temp_id]
@@ -138,7 +154,7 @@ class DataForgeService:
             MATCH (r:Requirement {id: $req_id}), (t:TestCase {id: $tc_id})
             MERGE (r)-[:COVERED_BY]->(t)
             """
-            self.db.run(relation_query, req_id=uuid_mother, tc_id=uuid_daughter)
+            tx.run(relation_query, req_id=uuid_mother, tc_id=uuid_daughter)
 
         for bugs in batch.bug_reports:
             uuid_mother = testcase_id_map[bugs.testcase_temp_id]
@@ -147,7 +163,7 @@ class DataForgeService:
             MATCH (t:TestCase {id: $tc_id}), (b:BugReport {id: $bug_id})
             MERGE (t)-[:FOUND]->(b)
             """
-            self.db.run(relation_query, tc_id=uuid_mother, bug_id=uuid_daughter)
+            tx.run(relation_query, tc_id=uuid_mother, bug_id=uuid_daughter)
 
         for incident in batch.incidents:
             uuid_mother = bugreport_id_map[incident.bug_temp_id]
@@ -156,7 +172,7 @@ class DataForgeService:
             MATCH (b:BugReport {id: $bug_id}), (i:Incident {id: $incident_id})
             MERGE (b)-[:CAUSED]->(i)
             """
-            self.db.run(relation_query, bug_id=uuid_mother, incident_id=uuid_daughter)
+            tx.run(relation_query, bug_id=uuid_mother, incident_id=uuid_daughter)
 
         for postmortem in batch.postmortems:
             uuid_mother = incident_id_map[postmortem.incident_temp_id]
@@ -165,7 +181,7 @@ class DataForgeService:
             MATCH (i:Incident {id: $incident_id}), (p:PostMortem {id: $pm_id})
             MERGE (i)-[:ROOT_CAUSE]->(p)
             """
-            self.db.run(relation_query, incident_id=uuid_mother, pm_id=uuid_daughter)
+            tx.run(relation_query, incident_id=uuid_mother, pm_id=uuid_daughter)
 
     def generate(self, num_stories: int, batch_size: int) -> dict:
         num_batches = num_stories // batch_size
@@ -188,11 +204,20 @@ class DataForgeService:
             try:
                 batch = DataForgeOutput.model_validate(response_llm)
             except ValidationError as e:
-                logging.warning(f"Batch {iteration} failed validation: {e}")
+                logger.warning(f"Batch {iteration} failed validation: {e}")
                 totals["batches_failed"] += 1
                 continue
 
-            self._insert_batch(batch)
+            try:
+                self._insert_batch(batch)
+            except KeyError as e:
+                logger.warning(
+                    f"Batch {iteration} referenced an unknown temp_id ({e}) — "
+                    "likely LLM hallucination. Batch rolled back, skipping."
+                )
+                totals["batches_failed"] += 1
+                continue
+
             totals["stories"] += len(batch.stories)
             totals["requirements"] += len(batch.requirements)
             totals["test_cases"] += len(batch.testcases)

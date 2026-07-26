@@ -4,7 +4,6 @@ import { BrainCircuit, Mail, Lock, Loader2, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import { useLang } from "@/lib/i18n";
 import { loginUser } from "@/lib/api";
 import cloudsBg from "@/assets/login-clouds.jpg";
@@ -36,8 +35,8 @@ function LoginPage() {
       const data = await loginUser({ username: email, password });
       localStorage.setItem("dm-token", data.access_token);
       navigate({ to: "/" });
-    } catch {
-      setError(t("login.error"));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t("login.error"));
     } finally {
       setLoading(false);
     }
@@ -118,12 +117,7 @@ function LoginPage() {
             </div>
 
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password">{t("login.password")}</Label>
-                <a href="#" className="text-xs font-medium text-primary hover:underline">
-                  {t("login.forgot")}
-                </a>
-              </div>
+              <Label htmlFor="password">{t("login.password")}</Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
@@ -136,13 +130,6 @@ function LoginPage() {
                   className="pl-9"
                 />
               </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Checkbox id="remember" />
-              <Label htmlFor="remember" className="text-sm font-normal text-muted-foreground">
-                {t("login.remember")}
-              </Label>
             </div>
 
             {error && (
@@ -163,13 +150,6 @@ function LoginPage() {
               )}
             </Button>
           </form>
-
-          <p className="mt-6 text-center text-sm text-muted-foreground">
-            {t("login.noAccount")}{" "}
-            <a href="#" className="font-medium text-primary hover:underline">
-              {t("login.requestAccess")}
-            </a>
-          </p>
         </div>
       </div>
     </div>

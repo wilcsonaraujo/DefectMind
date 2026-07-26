@@ -1,5 +1,6 @@
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
+
 from pydantic import BaseModel, Field
 
 
@@ -23,7 +24,7 @@ class RelationTypeEnum(str, Enum):
 class SemanticSearchRequest(BaseModel):
     request_text: str
     limit_responses: int = Field(gt=0, default=10)
-    filter: Optional[TypeEnum] = None
+    filter: TypeEnum | None = None
 
 
 class SearchResult(BaseModel):
@@ -55,12 +56,12 @@ class ImpactAnalysisResponse(BaseModel):
     edges: list[ImpactEdge]
 
 class NodeByType(BaseModel):
-    Story: Optional[int] = 0
-    BugReport: Optional[int] = 0
-    TestCase: Optional[int] = 0
-    Requirement: Optional[int] = 0
-    Incident: Optional[int] = 0
-    PostMortem: Optional[int] = 0
+    Story: int | None = 0
+    BugReport: int | None = 0
+    TestCase: int | None = 0
+    Requirement: int | None = 0
+    Incident: int | None = 0
+    PostMortem: int | None = 0
 
 class MostConnectedNode(BaseModel):
     id: str

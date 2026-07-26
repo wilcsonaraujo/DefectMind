@@ -1,9 +1,12 @@
-from datetime import datetime, timezone
 import uuid
+from datetime import datetime, timezone
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
+from neo4j import Session
+
 from backend.src.core.dependencies import get_current_user
-from backend.src.core.neo4j_db import get_neo4j_session
+from backend.src.core.neo4j_db import get_required_neo4j_session
 from backend.src.models.user import User
 from backend.src.modules.artifacts.schemas import (
     BugReportRequest,
@@ -22,12 +25,14 @@ from backend.src.modules.artifacts.schemas import (
 
 router = APIRouter(dependencies=[Depends(get_current_user)])
 
+Neo4jSession = Annotated[Session, Depends(get_required_neo4j_session)]
+CurrentUser = Annotated[User, Depends(get_current_user)]
 
 @router.get(
     "/stories", response_model=list[StoryResponse], summary="Get all stories from Neo4j"
 )
 def get_stories(
-    neo4j=Depends(get_neo4j_session), current_user: User = Depends(get_current_user)
+    neo4j: Neo4jSession, current_user: CurrentUser
 ):
 
     query = """MATCH (s:Story) RETURN s"""
@@ -47,8 +52,8 @@ def get_stories(
 )
 def get_stories_id(
     story_id: str,
-    neo4j=Depends(get_neo4j_session),
-    current_user: User = Depends(get_current_user),
+    neo4j: Neo4jSession,
+    current_user: CurrentUser
 ):
 
     query = """MATCH (s:Story {id: $story_id}) RETURN s"""
@@ -66,8 +71,8 @@ def get_stories_id(
 )
 def create_story(
     story: StoryRequest,
-    neo4j=Depends(get_neo4j_session),
-    current_user: User = Depends(get_current_user),
+    neo4j: Neo4jSession,
+    current_user: CurrentUser
 ):
     new_id = str(uuid.uuid4())
     created_at = datetime.now(timezone.utc).isoformat()
@@ -91,7 +96,7 @@ def create_story(
     summary="Get all requirements from Neo4j",
 )
 def get_requirements(
-    neo4j=Depends(get_neo4j_session), current_user: User = Depends(get_current_user)
+    neo4j: Neo4jSession, current_user: CurrentUser
 ):
 
     query = """MATCH (r:Requirement) RETURN r"""
@@ -111,8 +116,8 @@ def get_requirements(
 )
 def create_requirement(
     requirement: RequirementRequest,
-    neo4j=Depends(get_neo4j_session),
-    current_user: User = Depends(get_current_user),
+    neo4j: Neo4jSession,
+    current_user: CurrentUser
 ):
     new_id = str(uuid.uuid4())
     created_at = datetime.now(timezone.utc).isoformat()
@@ -136,7 +141,7 @@ def create_requirement(
     summary="Get all test cases from Neo4j",
 )
 def get_test_cases(
-    neo4j=Depends(get_neo4j_session), current_user: User = Depends(get_current_user)
+    neo4j: Neo4jSession, current_user: CurrentUser
 ):
     query = """MATCH (t:TestCase) RETURN t"""
     result = neo4j.run(query)
@@ -155,8 +160,8 @@ def get_test_cases(
 )
 def create_test_case(
     test_case: TestCaseRequest,
-    neo4j=Depends(get_neo4j_session),
-    current_user: User = Depends(get_current_user),
+    neo4j: Neo4jSession,
+    current_user: CurrentUser
 ):
     new_id = str(uuid.uuid4())
     created_at = datetime.now(timezone.utc).isoformat()
@@ -180,7 +185,7 @@ def create_test_case(
     summary="Get all bug reports from Neo4j",
 )
 def get_bug_reports(
-    neo4j=Depends(get_neo4j_session), current_user: User = Depends(get_current_user)
+    neo4j: Neo4jSession, current_user: CurrentUser
 ):
     query = """MATCH (b:BugReport) RETURN b"""
     result = neo4j.run(query)
@@ -199,8 +204,8 @@ def get_bug_reports(
 )
 def create_bug_report(
     bug_report: BugReportRequest,
-    neo4j=Depends(get_neo4j_session),
-    current_user: User = Depends(get_current_user),
+    neo4j: Neo4jSession,
+    current_user: CurrentUser
 ):
     new_id = str(uuid.uuid4())
     created_at = datetime.now(timezone.utc).isoformat()
@@ -224,7 +229,7 @@ def create_bug_report(
     summary="Get all incidents from Neo4j",
 )
 def get_incidents(
-    neo4j=Depends(get_neo4j_session), current_user: User = Depends(get_current_user)
+    neo4j: Neo4jSession, current_user: CurrentUser
 ):
     query = """MATCH (i:Incident) RETURN i"""
     result = neo4j.run(query)
@@ -243,8 +248,8 @@ def get_incidents(
 )
 def create_incident(
     incident: IncidentRequest,
-    neo4j=Depends(get_neo4j_session),
-    current_user: User = Depends(get_current_user),
+    neo4j: Neo4jSession,
+    current_user: CurrentUser
 ):
     new_id = str(uuid.uuid4())
     created_at = datetime.now(timezone.utc).isoformat()
@@ -268,7 +273,7 @@ def create_incident(
     summary="Get all post-mortems from Neo4j",
 )
 def get_postmortems(
-    neo4j=Depends(get_neo4j_session), current_user: User = Depends(get_current_user)
+    neo4j: Neo4jSession, current_user: CurrentUser
 ):
     query = """MATCH (p:PostMortem) RETURN p"""
     result = neo4j.run(query)
@@ -287,8 +292,8 @@ def get_postmortems(
 )
 def create_postmortem(
     postmortem: PostMortemRequest,
-    neo4j=Depends(get_neo4j_session),
-    current_user: User = Depends(get_current_user),
+    neo4j: Neo4jSession,
+    current_user: CurrentUser
 ):
     new_id = str(uuid.uuid4())
     created_at = datetime.now(timezone.utc).isoformat()
@@ -313,8 +318,8 @@ def create_postmortem(
 def link_requirement_to_story(
     story_id: str,
     req_id: str,
-    neo4j=Depends(get_neo4j_session),
-    current_user: User = Depends(get_current_user),
+    neo4j: Neo4jSession,
+    current_user: CurrentUser
 ):
     query = """
     MATCH (s:Story {id: $story_id}), (r:Requirement {id: $req_id})
@@ -343,8 +348,8 @@ def link_requirement_to_story(
 def link_testcase_to_requirement(
     req_id: str,
     tc_id: str,
-    neo4j=Depends(get_neo4j_session),
-    current_user: User = Depends(get_current_user),
+    neo4j: Neo4jSession,
+    current_user: CurrentUser
 ):
     query = """
     MATCH (r:Requirement {id: $req_id}), (t:TestCase {id: $tc_id})
@@ -373,8 +378,8 @@ def link_testcase_to_requirement(
 def link_testcase_to_bug(
     tc_id: str,
     bug_id: str,
-    neo4j=Depends(get_neo4j_session),
-    current_user: User = Depends(get_current_user),
+    neo4j: Neo4jSession,
+    current_user: CurrentUser
 ):
     query = """
     MATCH (t:TestCase {id: $tc_id}), (b:BugReport {id: $bug_id})
@@ -401,8 +406,8 @@ def link_testcase_to_bug(
 def link_bug_to_incident(
     bug_id: str,
     incident_id: str,
-    neo4j=Depends(get_neo4j_session),
-    current_user: User = Depends(get_current_user),
+    neo4j: Neo4jSession,
+    current_user: CurrentUser,
 ):
     query = """
     MATCH (b:BugReport {id: $bug_id}), (i:Incident {id: $incident_id})
@@ -429,8 +434,8 @@ def link_bug_to_incident(
 def link_incident_to_postmortem(
     incident_id: str,
     pm_id: str,
-    neo4j=Depends(get_neo4j_session),
-    current_user: User = Depends(get_current_user),
+    neo4j: Neo4jSession,
+    current_user: CurrentUser,
 ):
     query = """
     MATCH (i:Incident {id: $incident_id}), (p:PostMortem {id: $pm_id})
@@ -458,8 +463,8 @@ def link_incident_to_postmortem(
 )
 def get_requirements_by_story(
     story_id: str,
-    neo4j=Depends(get_neo4j_session),
-    current_user: User = Depends(get_current_user),
+    neo4j: Neo4jSession,
+    current_user: CurrentUser
 ):
     query = """
     MATCH (s:Story {id: $story_id})-[:HAS_REQUIREMENT]->(r:Requirement)
@@ -480,8 +485,8 @@ def get_requirements_by_story(
 )
 def get_bugs_by_testcase(
     tc_id: str,
-    neo4j=Depends(get_neo4j_session),
-    current_user: User = Depends(get_current_user),
+    neo4j: Neo4jSession,
+    current_user: CurrentUser
 ):
     query = """
     MATCH (t:TestCase {id: $tc_id})-[:FOUND]->(b:BugReport)

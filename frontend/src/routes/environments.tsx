@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Server, CheckCircle2 } from "lucide-react";
+import { Server, CheckCircle2, Info } from "lucide-react";
 import { AppLayout } from "@/components/app-layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -25,6 +25,10 @@ function EnvironmentsPage() {
   const { t, tt } = useLang();
   return (
     <AppLayout title={t("env.title")} subtitle={t("env.subtitle")}>
+      <div className="mb-4 flex items-start gap-2 rounded-lg border border-border bg-secondary/40 px-4 py-3 text-sm text-muted-foreground">
+        <Info className="mt-0.5 h-4 w-4 shrink-0" />
+        <p>Pré-visualização — esta tela ainda não está conectada a nenhuma API. Os ambientes abaixo são somente para exemplo.</p>
+      </div>
       <div className="grid gap-4 md:grid-cols-3">
         {envs.map((e) => (
           <Card key={e.name} className={e.current ? "border-primary/50" : ""}>

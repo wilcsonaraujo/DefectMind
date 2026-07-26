@@ -1,11 +1,11 @@
 from abc import ABC, abstractmethod
-from typing import Any, Dict
+from typing import Any
 
 
 class AIProvider(ABC):
 
     @abstractmethod
-    def generate_json(self, prompt: str) -> Dict[str, Any]:
+    def generate_json(self, prompt: str, temperature: float = 0.3) -> dict[str, Any]:
         pass
 
     @abstractmethod

@@ -13,17 +13,10 @@ export const Route = createFileRoute("/sitemap.xml")({
   server: {
     handlers: {
       GET: async () => {
-        const entries: SitemapEntry[] = [
-          { path: "/", changefreq: "weekly", priority: "1.0" },
-          { path: "/search", changefreq: "weekly", priority: "0.8" },
-          { path: "/impact", changefreq: "weekly", priority: "0.8" },
-          { path: "/graph", changefreq: "weekly", priority: "0.8" },
-          { path: "/data-forge", changefreq: "monthly", priority: "0.6" },
-          { path: "/artifacts", changefreq: "weekly", priority: "0.8" },
-          { path: "/users", changefreq: "monthly", priority: "0.5" },
-          { path: "/settings", changefreq: "monthly", priority: "0.4" },
-          { path: "/environments", changefreq: "monthly", priority: "0.4" },
-        ];
+        // Toda rota do app exige login (ver beforeLoad em routes/__root.tsx)
+        // exceto /login, que por sua vez não faz sentido indexar. Não há
+        // hoje nenhuma página pública pra listar aqui.
+        const entries: SitemapEntry[] = [];
 
         const urls = entries.map((e) =>
           [

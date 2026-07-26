@@ -1,8 +1,9 @@
 import json
-from google.genai import types
-from typing import Any, Dict
+from typing import Any
 
 from google import genai
+from google.genai import types
+
 from backend.src.core.ai.provider import AIProvider
 from backend.src.core.config import settings
 
@@ -21,9 +22,10 @@ class GeminiProvider(AIProvider):
         )
         return response.text
 
-    def generate_json(self, prompt: str, schema: Any = None) -> Dict[str, Any]:
+    def generate_json(self, prompt: str, schema: Any = None, temperature: float = 0.3) -> dict[str, Any]:
 
-        config_args = {"response_mime_type": "application/json"}
+        config_args = {"response_mime_type": "application/json",
+                       "temperature": temperature}
 
         if schema:
             config_args["response_schema"] = schema

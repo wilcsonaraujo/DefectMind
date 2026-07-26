@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Search, Sparkles, Clock, Network, AlertCircle, Loader2 } from "lucide-react";
 import { AppLayout } from "@/components/app-layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -65,9 +65,17 @@ function SearchPage() {
   const [searched, setSearched] = useState(false);
   const [history, setHistory] = useState<string[]>([]);
   const { t } = useLang();
+  const abortRef = useRef<AbortController | null>(null);
 
   async function handleSearch() {
     if (!query.trim()) return;
+
+    // Cancela a busca anterior ainda em andamento — sem isso, se ela
+    // resolver depois desta (fora de ordem), sobrescreve o resultado atual.
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
     setLoading(true);
     setError(null);
     setSearched(true);
@@ -76,18 +84,22 @@ function SearchPage() {
       return updated.slice(0, 5);
     });
     try {
-      const data = await searchSemantic({
-        text: query,
-        filter: filter === "all" ? null : filter,
-        limit_responses: 20,
-      });
+      const data = await searchSemantic(
+        {
+          text: query,
+          filter: filter === "all" ? null : filter,
+          limit_responses: 20,
+        },
+        controller.signal,
+      );
       setResults(data.results);
       setTotal(data.total);
     } catch (err) {
+      if (err instanceof DOMException && err.name === "AbortError") return;
       setError(err instanceof Error ? err.message : "Erro desconhecido");
       setResults([]);
     } finally {
-      setLoading(false);
+      if (abortRef.current === controller) setLoading(false);
     }
   }
 

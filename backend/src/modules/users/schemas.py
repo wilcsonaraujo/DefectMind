@@ -1,13 +1,13 @@
-from datetime import datetime
-from typing import Optional
 import uuid
+from datetime import datetime
+
 from pydantic import BaseModel, ConfigDict
 
 
 class UserResponse(BaseModel):
     id: uuid.UUID
     email: str
-    full_name: Optional[str]
+    full_name: str | None
     role: str
     is_active: bool
     created_at: datetime

@@ -4,25 +4,28 @@ import os
 os.environ.setdefault("DATABASE_URL", "sqlite:///:memory:")
 os.environ.setdefault("ENVIRONMENT", "test")
 os.environ.setdefault("APP_NAME", "DefectMind")
-os.environ.setdefault("APP_VERSION", "0.1.0")
+os.environ.setdefault("APP_VERSION", "3.0.0")
 os.environ.setdefault("JWT_SECRET_KEY", "test-secret-key-insecure")
 os.environ.setdefault("NEO4J_URI", "")
 os.environ.setdefault("NEO4J_USER", "")
 os.environ.setdefault("NEO4J_PASSWORD", "")
+os.environ.setdefault("GROQ_API_KEY", "fake-key-for-tests")
 
+
+from unittest.mock import MagicMock, patch
 
 import pytest
-from fastapi.testclient import TestClient
 from sqlalchemy import StaticPool, create_engine
 from sqlalchemy.orm import sessionmaker
-from backend.src.core.database import Base, get_db
-from backend.src.main import app
-from backend.src.core.neo4j_db import get_neo4j_session
-from unittest.mock import MagicMock, patch
-from backend.src.core.ai.gemini_provider import GeminiProvider
+from starlette.testclient import TestClient
 
 # Import models to ensure they are registered with SQLAlchemy
 import backend.src.models  # noqa: F401
+from backend.src.core.ai.gemini_provider import GeminiProvider
+from backend.src.core.ai.provider_factory import get_ai_provider
+from backend.src.core.database import Base, get_db
+from backend.src.core.neo4j_db import get_neo4j_session
+from backend.src.main import app
 
 TEST_DATABASE_URL = "sqlite:///:memory:"
 
@@ -83,3 +86,14 @@ def provider():
         mock_client = MagicMock()
         mock_client_class.return_value = mock_client
         yield GeminiProvider(api_key="fake-key")
+
+@pytest.fixture(autouse=True)
+def mock_ai_provider():
+    """
+    Global mock of the AI provider for all tests.
+    """
+    mock_provider = MagicMock()
+    mock_provider.generate_json.return_value = {"result": "mocked"}
+    app.dependency_overrides[get_ai_provider] = lambda: mock_provider
+    yield mock_provider
+    app.dependency_overrides.pop(get_ai_provider, None)

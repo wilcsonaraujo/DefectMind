@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   AlertCircle,
   Loader2,
@@ -13,7 +13,7 @@ import { AppLayout } from "@/components/app-layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { getGraphStats, type GraphStatsResponse } from "@/lib/api";
+import { getGraphStats } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
 
 export const Route = createFileRoute("/graph")({
@@ -71,17 +71,16 @@ function MetricCard({
 
 // ─── Página principal ─────────────────────────────────────────────────────────
 function GraphPage() {
-  const [stats, setStats] = useState<GraphStatsResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const { t } = useLang();
-
-  useEffect(() => {
-    getGraphStats()
-      .then(setStats)
-      .catch((err: Error) => setError(err.message))
-      .finally(() => setLoading(false));
-  }, []);
+  const {
+    data: stats,
+    isLoading: loading,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: ["graph-stats"],
+    queryFn: getGraphStats,
+  });
 
   if (loading) {
     return (
@@ -99,8 +98,10 @@ function GraphPage() {
       <AppLayout title={t("graph.title")} subtitle={t("graph.subtitle")}>
         <div className="flex h-64 flex-col items-center justify-center gap-3 text-center">
           <AlertCircle className="h-8 w-8 text-destructive" />
-          <p className="text-sm text-destructive">{error ?? "Erro desconhecido."}</p>
-          <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
+          <p className="text-sm text-destructive">
+            {error instanceof Error ? error.message : "Erro desconhecido."}
+          </p>
+          <Button variant="outline" size="sm" onClick={() => refetch()}>
             Tentar novamente
           </Button>
         </div>

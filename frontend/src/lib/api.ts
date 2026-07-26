@@ -1,7 +1,10 @@
-const API_BASE =
-  typeof window !== "undefined"
-    ? ((import.meta.env?.VITE_API_URL as string | undefined) ?? "http://localhost:8000")
-    : "http://backend:8000";
+// Default por contexto (docker-compose usa o hostname do serviço "backend"
+// no SSR, localhost no browser) — mas em qualquer um dos dois casos,
+// VITE_API_URL sobrescreve se estiver definida. Antes o branch de SSR
+// não tinha como ser configurado por env var de jeito nenhum.
+const DEFAULT_API_BASE =
+  typeof window !== "undefined" ? "http://localhost:8000" : "http://backend:8000";
+const API_BASE = (import.meta.env?.VITE_API_URL as string | undefined) ?? DEFAULT_API_BASE;
 
 // ─── Tipos de entidade ────────────────────────────────────────────────────────
 export type EntityType =
@@ -30,7 +33,27 @@ export async function loginUser(payload: LoginRequest): Promise<LoginResponse> {
     body: JSON.stringify({ email: payload.username, password: payload.password }),
   });
   if (!response.ok) {
-    throw new Error("Credenciais inválidas. Verifique e-mail e senha.");
+    // O backend manda a razão real em { detail: "..." } (401 senha errada,
+    // 403 conta inativa, etc.) — repassa isso em vez de uma mensagem fixa.
+    const body = await response.json().catch(() => null);
+    throw new Error(body?.detail ?? `Falha no login (${response.status})`);
+  }
+  return response.json();
+}
+
+/**
+ * Busca os dados reais do usuário logado (nome, e-mail, role).
+ * O JWT em si só carrega `sub` (id do usuário) e `role` — nome e
+ * e-mail de exibição vêm sempre daqui, nunca do payload do token.
+ */
+export async function getCurrentUser(): Promise<UserResponse> {
+  const response = await fetch(`${API_BASE}/api/v1/auth/me`, {
+    method: "GET",
+    headers: authHeaders(),
+  });
+  if (response.status === 401) handleUnauthorized();
+  if (!response.ok) {
+    throw new Error(`Falha ao carregar usuário atual (${response.status})`);
   }
   return response.json();
 }
@@ -56,6 +79,7 @@ export interface SemanticSearchRequest {
 
 export async function searchSemantic(
   payload: SemanticSearchRequest,
+  signal?: AbortSignal,
 ): Promise<SemanticSearchResponse> {
   const headers = authHeaders();
   const response = await fetch(`${API_BASE}/api/v1/search/semantic`, {
@@ -66,7 +90,9 @@ export async function searchSemantic(
       filter: payload.filter ?? null,
       limit_responses: payload.limit_responses ?? 10,
     }),
+    signal,
   });
+  if (response.status === 401) handleUnauthorized();
   if (!response.ok) {
     const detail = await response.text().catch(() => response.statusText);
     throw new Error(`Erro na busca (${response.status}): ${detail}`);
@@ -95,12 +121,14 @@ export interface ImpactAnalysisResponse {
 export async function getImpactAnalysis(
   nodeId: string,
   depth = 3,
+  signal?: AbortSignal,
 ): Promise<ImpactAnalysisResponse> {
   const headers = authHeaders();
   const response = await fetch(
     `${API_BASE}/api/v1/search/impact-analysis/${encodeURIComponent(nodeId)}?depth=${depth}`,
-    { method: "GET", headers },
+    { method: "GET", headers, signal },
   );
+  if (response.status === 401) handleUnauthorized();
   if (!response.ok) {
     const detail = await response.text().catch(() => response.statusText);
     throw new Error(`Erro na análise de impacto (${response.status}): ${detail}`);
@@ -147,6 +175,7 @@ export async function getGraphStats(): Promise<GraphStatsResponse> {
     method: "GET",
     headers,
   });
+  if (response.status === 401) handleUnauthorized();
   if (!response.ok) {
     const detail = await response.text().catch(() => response.statusText);
     throw new Error(`Erro ao carregar estatísticas do grafo (${response.status}): ${detail}`);
@@ -161,6 +190,22 @@ function authHeaders(): Record<string, string> {
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   if (token) headers["Authorization"] = `Bearer ${token}`;
   return headers;
+}
+
+/**
+ * Chamado sempre que um endpoint autenticado devolve 401 — token
+ * expirado/inválido/revogado no servidor. Sem isso a UI ficava "logada"
+ * indefinidamente e cada chamada virava um 401 silencioso, sem re-login.
+ * Não é usado em loginUser (401 ali é "senha errada", não sessão inválida)
+ * nem em getHealthStatus (endpoint público, sem auth).
+ */
+function handleUnauthorized(): void {
+  if (typeof localStorage !== "undefined") {
+    localStorage.removeItem("dm-token");
+  }
+  if (typeof window !== "undefined" && window.location.pathname !== "/login") {
+    window.location.href = "/login";
+  }
 }
 
 export interface StoryResponse {
@@ -216,6 +261,7 @@ async function fetchArtifacts<T>(path: string): Promise<T[]> {
     method: "GET",
     headers: authHeaders(),
   });
+  if (response.status === 401) handleUnauthorized();
   if (!response.ok) {
     const detail = await response.text().catch(() => response.statusText);
     throw new Error(`Erro ao carregar artefatos (${response.status}): ${detail}`);
@@ -252,9 +298,34 @@ export async function getUsers(): Promise<UserResponse[]> {
     method: "GET",
     headers,
   });
+  if (response.status === 401) handleUnauthorized();
   if (!response.ok) {
     const detail = await response.text().catch(() => response.statusText);
     throw new Error(`Erro ao carregar usuários (${response.status}): ${detail}`);
+  }
+  return response.json();
+}
+
+export interface CreateUserRequest {
+  full_name: string;
+  email: string;
+  password: string;
+  role: string;
+}
+
+export async function createUser(payload: CreateUserRequest): Promise<UserResponse> {
+  const response = await fetch(`${API_BASE}/api/v1/auth/register`, {
+    method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify(payload),
+  });
+  if (response.status === 401) handleUnauthorized();
+  if (!response.ok) {
+    // 409 (e-mail já cadastrado) manda { detail: "..." } como string;
+    // 422 de validação manda uma lista de erros — nesse caso cai no fallback.
+    const body = await response.json().catch(() => null);
+    const detail = typeof body?.detail === "string" ? body.detail : null;
+    throw new Error(detail ?? `Erro ao criar usuário (${response.status})`);
   }
   return response.json();
 }
@@ -306,6 +377,7 @@ export async function generateDataset(
     headers,
     body: JSON.stringify(payload),
   });
+  if (response.status === 401) handleUnauthorized();
   if (!response.ok) {
     const detail = await response.text().catch(() => response.statusText);
     throw new Error(`Erro ao gerar dataset (${response.status}): ${detail}`);

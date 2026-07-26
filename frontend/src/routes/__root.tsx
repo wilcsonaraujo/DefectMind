@@ -8,11 +8,13 @@ import {
   useRouterState,
   HeadContent,
   Scripts,
+  redirect,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { LanguageProvider } from "../lib/i18n";
+import { isTokenExpired } from "../hooks/use-auth";
 
 function NotFoundComponent() {
   return (
@@ -74,6 +76,20 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
+  // Roda antes da rota ser resolvida/montada — bloqueia o mount da página
+  // protegida (e os useEffect dela, que disparam chamadas de API) em vez
+  // de deixar montar e só redirecionar depois, como o AuthGuard fazia sozinho.
+  // Só funciona no client (localStorage não existe durante SSR); o AuthGuard
+  // abaixo continua como rede de segurança pro caso de primeiro load via SSR.
+  beforeLoad: ({ location }) => {
+    if (typeof window === "undefined") return;
+    const token = localStorage.getItem("dm-token");
+    const expired = !token || isTokenExpired();
+    if (expired && location.pathname !== "/login") {
+      if (token) localStorage.removeItem("dm-token");
+      throw redirect({ to: "/login" });
+    }
+  },
   head: () => ({
     meta: [
       { charSet: "utf-8" },
@@ -120,14 +136,21 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
-/** Guard global: redireciona para /login se não houver token JWT. */
+/**
+ * Guard de fallback: redireciona para /login se não houver token JWT ou
+ * se ele já tiver expirado. O beforeLoad da rota raiz já cobre isso pra
+ * navegações client-side; este componente só existe pro primeiro load via
+ * SSR, quando beforeLoad não consegue checar localStorage.
+ */
 function AuthGuard() {
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   useEffect(() => {
     const token = localStorage.getItem("dm-token");
-    if (!token && pathname !== "/login") {
+    const expired = !token || isTokenExpired();
+    if (expired && pathname !== "/login") {
+      if (token) localStorage.removeItem("dm-token");
       navigate({ to: "/login" });
     }
   }, [pathname, navigate]);

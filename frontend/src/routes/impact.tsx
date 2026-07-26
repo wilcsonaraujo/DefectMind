@@ -120,6 +120,7 @@ function ImpactPage() {
   // Modal de detalhes
   const [selectedNode, setSelectedNode] = useState<ImpactNode | null>(null);
   const rawNodesRef = useRef<ImpactNode[]>([]);
+  const abortRef = useRef<AbortController | null>(null);
 
   // ─── Dispara busca automática se nodeId vier pela query string ────────────
   useEffect(() => {
@@ -138,6 +139,12 @@ function ImpactPage() {
 
       if (!targetId) return;
 
+      // Cancela a busca anterior ainda em andamento — sem isso, se ela
+      // resolver depois desta (fora de ordem), sobrescreve o grafo atual.
+      abortRef.current?.abort();
+      const controller = new AbortController();
+      abortRef.current = controller;
+
       setLoading(true);
       setError(null);
       setSearched(true);
@@ -148,7 +155,7 @@ function ImpactPage() {
       navigate({ search: { nodeId: targetId }, replace: true });
 
       try {
-        const data = await getImpactAnalysis(targetId, targetDepth);
+        const data = await getImpactAnalysis(targetId, targetDepth, controller.signal);
         rawNodesRef.current = data.nodes;
 
         if (data.nodes.length === 0) {
@@ -206,9 +213,10 @@ function ImpactPage() {
         setRfNodes(flowNodes);
         setRfEdges(flowEdges);
       } catch (err) {
+        if (err instanceof DOMException && err.name === "AbortError") return;
         setError(err instanceof Error ? err.message : "Erro desconhecido");
       } finally {
-        setLoading(false);
+        if (abortRef.current === controller) setLoading(false);
       }
     },
     [nodeIdInput, depth, navigate, setRfNodes, setRfEdges],

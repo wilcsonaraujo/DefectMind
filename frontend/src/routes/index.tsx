@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   Plus,
   Search,
@@ -35,9 +36,6 @@ import {
   getBugReports,
   getIncidents,
   type NodeByType,
-  type StoryResponse,
-  type BugReportResponse,
-  type IncidentResponse,
 } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
 
@@ -109,48 +107,43 @@ function Index() {
   const navigate = useNavigate();
   const locale = lang === "pt" ? "pt-BR" : "en-US";
 
-  // Estado dos dados
-  const [nodesByType, setNodesByType] = useState<NodeByType | null>(null);
-  const [stories, setStories] = useState<StoryResponse[]>([]);
-  const [topBugs, setTopBugs] = useState<BugReportResponse[]>([]);
-  const [recentActivity, setRecentActivity] = useState<IncidentResponse[]>([]);
   const [selectedStory, setSelectedStory] = useState<string>("");
 
   // Estado da busca semântica inline
   const [searchQuery, setSearchQuery] = useState("");
   const [searchLoading, setSearchLoading] = useState(false);
 
-  useEffect(() => {
-    // Estatísticas do grafo e donut
-    getGraphStats()
-      .then((data) => setNodesByType(data.nodes_by_type))
-      .catch(() => setNodesByType(null));
+  // Estado dos dados — mesma queryKey ["graph-stats"] usada em /graph,
+  // então navegar entre as duas rotas reaproveita o cache em vez de
+  // refazer o fetch.
+  const { data: graphStats } = useQuery({
+    queryKey: ["graph-stats"],
+    queryFn: getGraphStats,
+  });
+  const nodesByType: NodeByType | null = graphStats?.nodes_by_type ?? null;
 
-    // Stories para o select de análise de impacto
-    getStories()
-      .then(setStories)
-      .catch(() => setStories([]));
+  const { data: stories = [] } = useQuery({
+    queryKey: ["stories"],
+    queryFn: getStories,
+  });
 
-    // Top bugs por severidade
-    getBugReports()
-      .then((bugs) => {
-        const sorted = [...bugs].sort(
-          (a, b) => (severityOrder[a.severity] ?? 99) - (severityOrder[b.severity] ?? 99),
-        );
-        setTopBugs(sorted.slice(0, 5));
-      })
-      .catch(() => setTopBugs([]));
+  const { data: topBugs = [] } = useQuery({
+    queryKey: ["bug-reports"],
+    queryFn: getBugReports,
+    select: (bugs) =>
+      [...bugs]
+        .sort((a, b) => (severityOrder[a.severity] ?? 99) - (severityOrder[b.severity] ?? 99))
+        .slice(0, 5),
+  });
 
-    // Atividade recente: últimos incidentes criados
-    getIncidents()
-      .then((incidents) => {
-        const sorted = [...incidents].sort(
-          (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
-        );
-        setRecentActivity(sorted.slice(0, 5));
-      })
-      .catch(() => setRecentActivity([]));
-  }, []);
+  const { data: recentActivity = [] } = useQuery({
+    queryKey: ["incidents"],
+    queryFn: getIncidents,
+    select: (incidents) =>
+      [...incidents]
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .slice(0, 5),
+  });
 
   // Busca semântica inline: navega para /search com a query
   function handleSearch() {

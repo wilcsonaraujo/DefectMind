@@ -1,19 +1,6 @@
 import { useNavigate } from "@tanstack/react-router";
-import { useEffect , useState } from "react";
-
-/**
- * Redireciona para /login se não houver token JWT no localStorage.
- * Use em páginas que exigem autenticação.
- */
-export function useRequireAuth() {
-  const navigate = useNavigate();
-  useEffect(() => {
-    const token = localStorage.getItem("dm-token");
-    if (!token) {
-      navigate({ to: "/login" });
-    }
-  }, [navigate]);
-}
+import { useEffect, useState } from "react";
+import { getCurrentUser, type UserResponse } from "@/lib/api";
 
 /**
  * Retorna o token JWT armazenado ou null se não estiver autenticado.
@@ -24,21 +11,30 @@ export function getToken(): string | null {
 }
 
 /**
- * Decodifica o payload do JWT e retorna nome e e-mail do usuário.
+ * Decodifica só o que o JWT de fato carrega: `role` e `exp`.
+ * Nome e e-mail NÃO estão no payload do token (ver create_access_token
+ * no backend) — para exibição, use useAuth().user, que busca /auth/me.
  * Retorna null se o token não existir ou for inválido.
  */
-export function getUserFromToken(): { name: string; email: string } | null {
+export function getTokenClaims(): { role: string; exp: number } | null {
   const token = getToken();
   if (!token) return null;
   try {
     const payload = JSON.parse(atob(token.split(".")[1]));
-    return {
-      email: payload.sub ?? "",
-      name: payload.name ?? payload.sub ?? "Usuário",
-    };
+    return { role: payload.role ?? "viewer", exp: payload.exp };
   } catch {
     return null;
   }
+}
+
+/**
+ * True se não houver token, o token for inválido, ou `exp` já tiver
+ * passado. `exp` do JWT é em segundos desde a epoch — Date.now() é em ms.
+ */
+export function isTokenExpired(): boolean {
+  const claims = getTokenClaims();
+  if (!claims?.exp) return true;
+  return Date.now() >= claims.exp * 1000;
 }
 
 /**
@@ -50,17 +46,26 @@ export function logout(navigate: ReturnType<typeof useNavigate>) {
 }
 
 /**
- * Hook principal de autenticação que retorna o estado do usuário
+ * Hook principal de autenticação. Busca o usuário real (nome, e-mail,
+ * role) via GET /auth/me — não decodifica isso do JWT, porque o token
+ * não carrega esses campos.
  */
 export function useAuth() {
-  const [user, setUser] = useState<{ name: string; email: string } | null>(null);
+  const [user, setUser] = useState<UserResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const userData = getUserFromToken();
-    setUser(userData);
-    setIsLoading(false);
+    if (!getToken() || isTokenExpired()) {
+      localStorage.removeItem("dm-token");
+      setUser(null);
+      setIsLoading(false);
+      return;
+    }
+    getCurrentUser()
+      .then(setUser)
+      .catch(() => setUser(null))
+      .finally(() => setIsLoading(false));
   }, []);
 
   const handleLogout = () => {

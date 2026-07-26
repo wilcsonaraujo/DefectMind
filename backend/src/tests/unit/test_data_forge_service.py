@@ -1,5 +1,7 @@
-import pytest
 from unittest.mock import MagicMock
+
+import pytest
+
 from backend.src.modules.data_forge.service import DataForgeService
 
 FAKE_EMBEDDING = [0.1] * 384
@@ -21,6 +23,9 @@ def service():
 
     fake_neo4j = MagicMock()
     fake_neo4j.run.return_value = []
+    fake_neo4j.execute_write.side_effect = (
+        lambda fn, *args, **kwargs: fn(fake_neo4j, *args, **kwargs)
+    )
 
     fake_embedding = MagicMock()
     fake_embedding.encode.return_value = FAKE_EMBEDDING
@@ -43,7 +48,7 @@ def test_generate_returns_counters(service):
 def test_generate_calls_embedding_service(service):
     """generate() deve chamar o EmbeddingService para cada entidade do lote."""
     service.generate(num_stories=1, batch_size=1)
-    # 6 entidades × 1 lote = pelo menos 6 chamadas ao encode
+    # 6 entities × 1 batch = at least 6 calls to the encoder
     assert service.embedding.encode.call_count >= 6
 
 

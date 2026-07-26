@@ -128,11 +128,22 @@ const dict: Dict = {
   // Users
   "users.title": { pt: "Usuários", en: "Users" },
   "users.subtitle": { pt: "Gerencie sua equipe de QA e níveis de acesso", en: "Manage your QA team and access levels" },
-  "users.invite": { pt: "Convidar Usuário", en: "Invite User" },
+  "users.add": { pt: "Adicionar Usuário", en: "Add User" },
+  "users.addDescription": { pt: "Preencha os dados abaixo para criar uma nova conta de usuário.", en: "Fill in the details below to create a new user account." },
   "users.col.member": { pt: "Membro", en: "Member" },
   "users.col.role": { pt: "Função", en: "Role" },
   "users.col.team": { pt: "Equipe", en: "Team" },
   "users.col.status": { pt: "Status", en: "Status" },
+  "users.form.fullName": { pt: "Nome completo", en: "Full name" },
+  "users.form.email": { pt: "E-mail", en: "Email" },
+  "users.form.password": { pt: "Senha", en: "Password" },
+  "users.form.role": { pt: "Função", en: "Role" },
+  "users.form.role.viewer": { pt: "Visualizador", en: "Viewer" },
+  "users.form.role.analyst": { pt: "Analista", en: "Analyst" },
+  "users.form.role.admin": { pt: "Administrador", en: "Admin" },
+  "users.form.cancel": { pt: "Cancelar", en: "Cancel" },
+  "users.form.submit": { pt: "Criar Usuário", en: "Create User" },
+  "users.form.submitting": { pt: "Criando…", en: "Creating…" },
 
   // Environments
   "env.title": { pt: "Ambientes", en: "Environments" },
@@ -218,11 +229,13 @@ dict["login.error"] = { pt: "Preencha e-mail e senha para continuar.", en: "Ente
 const LangContext = createContext<{ lang: Lang; setLang: (l: Lang) => void } | null>(null);
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [lang, setLangState] = useState<Lang>("en");
+  // "pt" é a língua principal do produto — usar como estado inicial evita
+  // o flash EN→PT que a maioria via antes do useEffect abaixo rodar
+  // (só quem salvou "en" explicitamente ainda vê um flash, PT→EN).
+  const [lang, setLangState] = useState<Lang>("pt");
   useEffect(() => {
     const saved = (typeof localStorage !== "undefined" && localStorage.getItem("dm-lang")) as Lang | null;
     if (saved === "pt" || saved === "en") setLangState(saved);
-    else setLangState("en");
   }, []);
   const setLang = (l: Lang) => {
     setLangState(l);
