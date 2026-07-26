@@ -2,14 +2,14 @@ import datetime
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
+from neo4j import Session as Neo4jSessionType
 from sqlalchemy import text
 from sqlalchemy.orm import Session
-from neo4j import Session as Neo4jSessionType
 
 from backend.src.core.config import settings
 from backend.src.core.database import get_db
 from backend.src.core.dependencies import get_current_user
-from backend.src.core.neo4j_db import get_neo4j_session, get_required_neo4j_session
+from backend.src.core.neo4j_db import get_neo4j_session
 from backend.src.core.security import (
     create_access_token,
     hash_password,
