@@ -4,7 +4,7 @@ import os
 os.environ.setdefault("DATABASE_URL", "sqlite:///:memory:")
 os.environ.setdefault("ENVIRONMENT", "test")
 os.environ.setdefault("APP_NAME", "DefectMind")
-os.environ.setdefault("APP_VERSION", "0.1.0")
+os.environ.setdefault("APP_VERSION", "3.0.0")
 os.environ.setdefault("JWT_SECRET_KEY", "test-secret-key-insecure")
 os.environ.setdefault("NEO4J_URI", "")
 os.environ.setdefault("NEO4J_USER", "")
