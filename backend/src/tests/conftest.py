@@ -14,9 +14,9 @@ os.environ.setdefault("NEO4J_PASSWORD", "")
 from unittest.mock import MagicMock, patch
 
 import pytest
-from starlette.testclient import TestClient
 from sqlalchemy import StaticPool, create_engine
 from sqlalchemy.orm import sessionmaker
+from starlette.testclient import TestClient
 
 # Import models to ensure they are registered with SQLAlchemy
 import backend.src.models  # noqa: F401
@@ -88,7 +88,7 @@ def provider():
 @pytest.fixture(autouse=True)
 def mock_ai_provider():
     """
-    Global mock of the AI ​​provider for all tests.
+    Global mock of the AI provider for all tests.
     """
     mock_provider = MagicMock()
     mock_provider.generate_json.return_value = {"result": "mocked"}
