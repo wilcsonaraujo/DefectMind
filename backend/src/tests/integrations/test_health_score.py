@@ -1,5 +1,6 @@
 import os
 
+from backend.src.core.ai.provider_factory import get_ai_provider
 from backend.src.core.dependencies import get_current_user
 from backend.src.modules.quality_intelligence.schemas import (
     EvidenceItem,
@@ -38,11 +39,9 @@ def mock_ai_provider():
     """Automatic AI provider mock for all tests."""
     mock_provider = MagicMock()
     mock_provider.generate_json.return_value = {"result": "mocked"}
-    with patch(
-        "backend.src.modules.quality_intelligence.router.get_ai_provider",
-        return_value=mock_provider,
-    ) as mock:
-        yield mock
+    app.dependency_overrides[get_ai_provider] = lambda: mock_provider
+    yield mock_provider
+    app.dependency_overrides.pop(get_ai_provider, None)
 
 MOCK_HEALTH_STATS = HealthScoreResponse(
     evidence=[

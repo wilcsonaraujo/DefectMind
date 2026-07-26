@@ -64,6 +64,8 @@ def impact_analysis_search_service(
     try:
         result = service.get_impact(node_id, depth)
         return result
+    except HTTPException:
+        raise
     except (ValueError, TypeError) as e:
         logger.error(f"Invalid depth for impact analysis on node {node_id}: {e}")
         raise HTTPException(status_code=400, detail=str(e))

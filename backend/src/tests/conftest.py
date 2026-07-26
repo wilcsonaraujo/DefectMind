@@ -92,11 +92,6 @@ def mock_ai_provider():
     """
     mock_provider = MagicMock()
     mock_provider.generate_json.return_value = {"result": "mocked"}
-    with patch(
-        "backend.src.modules.data_forge.router.get_ai_provider",
-        return_value=mock_provider,
-    ), patch(
-        "backend.src.modules.quality_intelligence.router.get_ai_provider",
-        return_value=mock_provider,
-    ):
-        yield mock_provider
+    app.dependency_overrides[get_ai_provider] = lambda: mock_provider
+    yield mock_provider
+    app.dependency_overrides.pop(get_ai_provider, None)
