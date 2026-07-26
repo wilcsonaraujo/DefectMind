@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock, patch
 
-from fastapi.testclient import TestClient
+from starlette.testclient import TestClient
 
 from backend.src.core.dependencies import get_embedding_service
 from backend.src.main import app

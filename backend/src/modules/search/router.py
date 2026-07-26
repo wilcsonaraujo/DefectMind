@@ -22,7 +22,7 @@ from backend.src.modules.search.semantic_search_service import SemanticSearchSer
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(get_current_user)])
 
 Neo4jSession = Annotated[Session, Depends(get_required_neo4j_session)]
 CurrentUser = Annotated[User, Depends(get_current_user)]

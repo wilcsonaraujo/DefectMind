@@ -11,7 +11,7 @@ os.environ.setdefault("GEMINI_API_KEY", "fake-key-for-tests")
 from unittest.mock import MagicMock, patch
 
 import pytest
-from fastapi.testclient import TestClient
+from starlette.testclient import TestClient
 
 from backend.src.main import app
 
@@ -35,11 +35,13 @@ def auth_headers(client):
 
 @pytest.fixture(autouse=True)
 def mock_ai_provider():
-    """Mock automático do provedor de IA para todos os testes."""
-    with patch("backend.src.core.ai.provider_factory.get_ai_provider") as mock:
-        mock_provider = MagicMock()
-        mock_provider.generate.return_value = "Mock AI response"
-        mock.return_value = mock_provider
+    """Automatic AI provider mock for all tests."""
+    mock_provider = MagicMock()
+    mock_provider.generate_json.return_value = {"result": "mocked"}
+    with patch(
+        "backend.src.modules.quality_intelligence.router.get_ai_provider",
+        return_value=mock_provider,
+    ) as mock:
         yield mock
 
 MOCK_HEALTH_STATS = HealthScoreResponse(
@@ -106,6 +108,7 @@ def test_health_score_returns_200_with_valid_token():
         assert "ai_analysis" in data
         assert "recommendations" in data
         assert "risk_classification" in data
+    app.dependency_overrides.clear()
 
 
 def test_health_score_returns_404_for_nonexistent_node():

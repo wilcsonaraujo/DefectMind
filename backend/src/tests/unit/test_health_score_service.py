@@ -120,16 +120,14 @@ class TestAIResponse:
     def test_call_llm_returns_expected_response(self, service):
         prompt = "Sample prompt"
         expected_response = '{"evidence": [], "ai_analysis": "Analysis", "recommendations": [], "risk_classification": "LOW"}'
-        service.ai_provider.generate_response.return_value = expected_response
+        service.ai_provider.generate_json.return_value = expected_response
         response = service._call_llm(prompt)
         assert response == expected_response
-        service.ai_provider.generate_response.assert_called_once_with(
-            ANY
-        )
+        service.ai_provider.generate_json.assert_called_once_with(ANY, temperature=0.1)
 
     def test_call_llm_with_exception(self, service):
         prompt = "Sample prompt"
-        service.ai_provider.generate_response.side_effect = Exception(
+        service.ai_provider.generate_json.side_effect = Exception(
             "Error occurred while calling LLM"
         )
         with pytest.raises(Exception) as excinfo:
@@ -147,7 +145,7 @@ class TestAIResponse:
     def test_call_llm_returns_incomplete_json_response(self, service):
         prompt = "Sample prompt"
         incomplete_json_response = '{"evidence": [], "ai_analysis": "Analysis"}'  # Missing recommendations and risk_classification
-        service.ai_provider.generate_response.return_value = incomplete_json_response
+        service.ai_provider.generate_json.return_value = incomplete_json_response
         response = service._call_llm(prompt)
         assert response == incomplete_json_response
 

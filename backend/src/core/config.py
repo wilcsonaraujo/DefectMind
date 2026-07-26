@@ -1,4 +1,4 @@
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -30,10 +30,10 @@ class Settings(BaseSettings):
     # AI PROVIDER SELECTOR
     AI_PROVIDER: str = "groq"   # Valid values: "deepseek", "gemini", "groq"
 
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
+    model_config = SettingsConfigDict(
+        env_file = ".env",
+        env_file_encoding = "utf-8",
         extra = "ignore"
-
+    )
 
 settings = Settings()

@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock, patch
 
-from fastapi.testclient import TestClient
+from starlette.testclient import TestClient
 
 from backend.src.main import app
 
