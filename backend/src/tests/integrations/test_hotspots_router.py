@@ -1,11 +1,5 @@
 import os
 
-from backend.src.core.ai.provider_factory import get_ai_provider
-from backend.src.modules.quality_intelligence.schemas import (
-    HotspotItem,
-    HotspotsResponse,
-)
-
 os.environ.setdefault("GEMINI_API_KEY", "fake-key-for-tests")
 
 from unittest.mock import MagicMock, patch
@@ -13,25 +7,12 @@ from unittest.mock import MagicMock, patch
 import pytest
 from starlette.testclient import TestClient
 
+from backend.src.core.ai.provider_factory import get_ai_provider
 from backend.src.main import app
-
-
-@pytest.fixture
-def client(db):
-    """Reuses the conftest authenticated client."""
-    app.dependency_overrides.clear()
-    return TestClient(app)
-
-
-@pytest.fixture
-def auth_headers(client):
-    """Get a JWT token via login for use in authenticated tests."""
-    response = client.post(
-        "/auth/login",
-        data={"username": "admin@defectmind.com", "password": "Admin@123"},
-    )
-    token = response.json().get("access_token", "fake-token")
-    return {"Authorization": f"Bearer {token}"}
+from backend.src.modules.quality_intelligence.schemas import (
+    HotspotItem,
+    HotspotsResponse,
+)
 
 
 @pytest.fixture(autouse=True)
@@ -63,17 +44,10 @@ MOCK_HOTSPOTS = HotspotsResponse(
 )
 
 
-def mock_user():
-    return {"username": "Admin", "password": "admin@123"}
-
-
 def test_generate_requires_auth():
     """The endpoint must return a 401 without an authentication token."""
     client = TestClient(app)
-    response = client.post(
-        "/api/v1/quality-intelligence/health-score",
-        json={"node_id": "some-node-id"},
-    )
+    response = client.get("/api/v1/quality-intelligence/hotspots")
     assert response.status_code == 401
 
 
@@ -87,15 +61,10 @@ def test_generate_success():
         mock_instance.get_hotspots.return_value = MOCK_HOTSPOTS
         MockService.return_value = mock_instance
 
-        with patch(
-            "backend.src.modules.quality_intelligence.router.generate_hotspots"
-        ) as MockFactory:
-            MockFactory.return_value = MagicMock()
-
-            response = client.post(
-                "/api/v1/quality-intelligence/hotspots",
-                headers={"Authorization": "Bearer valid-token"},
-            )
+        response = client.get(
+            "/api/v1/quality-intelligence/hotspots",
+            headers={"Authorization": "Bearer valid-token"},
+        )
 
     assert response.status_code in (200, 401)
     if response.status_code == 200:
@@ -124,7 +93,7 @@ def test_generate_success_empty():
         ) as MockFactory:
             MockFactory.return_value = MagicMock()
 
-            response = client.post(
+            response = client.get(
                 "/api/v1/quality-intelligence/hotspots",
                 headers={"Authorization": "Bearer valid-token"},
             )

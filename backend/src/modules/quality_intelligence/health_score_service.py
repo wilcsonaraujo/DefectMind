@@ -12,9 +12,9 @@ class HealthScoreService(QualityIntelligenceBaseService):
     def __init__(self, neo4j_session, ai_provider):
         super().__init__(neo4j_session, ai_provider)
 
-    def _build_health_score_prompt(self, node_id: str):
+    def _fetch_health_score_data(self, node_id: str):
         """
-        Build the health score prompt for a node in the graph database.
+        Fetch the health score data for a node from the graph database.
         """
 
         query = """
@@ -78,7 +78,7 @@ class HealthScoreService(QualityIntelligenceBaseService):
         Combines context building with health score calculation.
         """
 
-        health_score_data = self._build_health_score_prompt(node_id)
+        health_score_data = self._fetch_health_score_data(node_id)
 
         if not health_score_data:
             return None

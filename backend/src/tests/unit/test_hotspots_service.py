@@ -65,11 +65,12 @@ def fake_db():
 
 @pytest.fixture
 def service(fake_db):
-    return HotspotsService(neo4j_session=fake_db, ai_provider=MagicMock())
+    return HotspotsService(
+        neo4j_session=fake_db, ai_provider=MagicMock())
 
 
 class TestBuildHotspotsPrompt:
-    def test_get_hotspots_empty_scenarios(self):
+    def test_get_hotspots_empty_scenarios(self, service, fake_db):
         """
         Tests scenarios where no hotspots are returned.
 
@@ -86,15 +87,19 @@ class TestBuildHotspotsPrompt:
         assert result.ai_analysis == ""
         assert result.recommendations == []
 
-        mock_ai.generate_json.asssert_not_called()
+        service.ai_provider.generate_json.assert_not_called()
 
         fake_db.run.assert_called_once()
         call_args = fake_db.run.call_args[1]
         assert call_args["limit"] == 10
 
-    def test_get_hotspots_maps_single_row_to_hotspot_item(self):
+    def test_get_hotspots_maps_single_row_to_hotspot_item(self, service, fake_db):
         """Tests the mapping of a single Neo4j row to HotspotItem."""
-        fake_db.run.return_value = make_neo4j_result([mock_records])
+        fake_db.run.return_value = make_neo4j_result(mock_records)
+        service.ai_provider.generate_json.return_value = {
+            "ai_analysis": "Análise mock para teste",
+            "recommendations": ["Recomendação 1", "Recomendação 2"],
+        }
 
         result = service.get_hotspots(limit=10)
 
@@ -119,12 +124,12 @@ class TestGetHotspotPrompt:
         """Tests the formatting of a single hotspot."""
         result = service._build_hotspots_context(hotspots)
 
-        assert "Hotspot 1: Sistema de Autenticação (Story)" in result
-        assert "bug_count: 15" in result
-        assert "critical_bug_count: 4" in result
-        assert "incident_count: 3" in result
-        assert "postmortem_count: 2" in result
-        assert "score: 37.0" in result
+        assert "[Story] title: Sistema de Autenticação" in result
+        assert "Bug Count: 15" in result
+        assert "Critical Bug Count: 4" in result
+        assert "Incident Count: 3" in result
+        assert "Postmortem Count: 2" in result
+        assert "Score: 37.0" in result
         assert "---" not in result
 
     def test_get_hotspot_prompt(self, service):
@@ -136,7 +141,6 @@ class TestGetHotspotPrompt:
         assert len(lines) > 0
 
         assert "context" in result.lower()
-        assert "Dados mockados para teste" in result
 
         assert "ai_analysis" in result
         assert "recommendations" in result

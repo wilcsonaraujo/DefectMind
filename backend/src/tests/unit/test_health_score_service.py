@@ -28,13 +28,14 @@ def fake_db():
 
 @pytest.fixture
 def service(fake_db):
-    return HealthScoreService(neo4j_session=fake_db, ai_provider=MagicMock())
+    return HealthScoreService(
+        neo4j_session=fake_db, ai_provider=MagicMock())
 
 
 class TestBuildHealthScorePrompt:
     def test_node_not_found(self, fake_db, service):
         fake_db.run.return_value = make_neo4j_result([])
-        result = service._build_health_score_prompt("nonexistent_node_id")
+        result = service._fetch_health_score_data("nonexistent_node_id")
         assert result is None
 
     def test_node_found_with_no_connected_nodes(self, fake_db, service):
@@ -54,7 +55,7 @@ class TestBuildHealthScorePrompt:
                 }
             ]
         )
-        result = service._build_health_score_prompt("1")
+        result = service._fetch_health_score_data("1")
         assert result is not None
         assert result["main_node"]["id"] == "1"
         assert result["degree"] == 0
@@ -80,7 +81,7 @@ class TestBuildHealthScorePrompt:
                 }
             ]
         )
-        result = service._build_health_score_prompt("1")
+        result = service._fetch_health_score_data("1")
         assert result is not None
         assert result["main_node"]["id"] == "1"
         assert result["degree"] == 2

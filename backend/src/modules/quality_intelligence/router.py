@@ -1,8 +1,7 @@
 import logging
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException
-from fastapi.params import Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from neo4j import Session
 
 from backend.src.modules.quality_intelligence.hotspots_service import HotspotsService
