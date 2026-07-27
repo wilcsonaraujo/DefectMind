@@ -81,7 +81,7 @@ def generate_hotspots(
         logger.error(f"Failed to parse AI response for hotspots: {e}")
         raise HTTPException(status_code=500, detail=str(e))
     except Exception:
-        logger.exception(f"Unexpected error generating hotspots")
+        logger.exception("Unexpected error generating hotspots")
         raise HTTPException(
             status_code=500, detail="Error occurred while generating hotspots."
         )
