@@ -88,31 +88,31 @@ class TestBuildHealthScorePrompt:
 
 
 class TestBuildPrompt:
-    def test_build_prompt_structure(self, service):
+    def test_build_health_score_prompt_structure(self, service):
         context = "Sample context"
         health_score_data = {
             "main_node": {"title": "Main Node", "label": "Artifact"},
             "nodes_by_type": {"Story": 2, "Bug": 1},
         }
-        prompt = service._build_prompt(context, health_score_data)
+        prompt = service._build_health_score_prompt(context, health_score_data)
         assert "context: Sample context" in prompt
         assert "Main Node: Main Node (Type: Artifact)" in prompt
         assert "Nodes by Type: {'Story': 2, 'Bug': 1}" in prompt
         assert "Answer strictly in JSON" in prompt
 
-    def test_build_prompt_with_main_node_missing(self, service):
+    def test_build_health_score_prompt_with_main_node_missing(self, service):
         context = "Sample context"
         health_score_data = {"main_node": {}, "nodes_by_type": {"Story": 2, "Bug": 1}}
-        prompt = service._build_prompt(context, health_score_data)
+        prompt = service._build_health_score_prompt(context, health_score_data)
         assert "Main Node: None (Type: None)" in prompt
 
-    def test_build_prompt_with_json_instruction(self, service):
+    def test_build_health_score_prompt_with_json_instruction(self, service):
         context = "Sample context"
         health_score_data = {
             "main_node": {"title": "Main Node", "label": "Artifact"},
             "nodes_by_type": {"Story": 2, "Bug": 1},
         }
-        prompt = service._build_prompt(context, health_score_data)
+        prompt = service._build_health_score_prompt(context, health_score_data)
         assert "Answer strictly in JSON with the fields" in prompt
 
 

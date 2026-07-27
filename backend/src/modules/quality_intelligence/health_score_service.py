@@ -83,9 +83,9 @@ class HealthScoreService(QualityIntelligenceBaseService):
         if not health_score_data:
             return None
 
-        context = self._build_context(health_score_data.get("connected_nodes", {}))
+        context = self._build_health_score_context(health_score_data.get("connected_nodes", {}))
 
-        return self._build_prompt(context, health_score_data)
+        return self._build_health_score_prompt(context, health_score_data)
 
     def get_ai_response(self, prompt: str) -> HealthScoreResponse:
         """
