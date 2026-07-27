@@ -1,7 +1,6 @@
 import os
 
 from backend.src.core.ai.provider_factory import get_ai_provider
-from backend.src.core.dependencies import get_current_user
 from backend.src.modules.quality_intelligence.schemas import (
     HotspotItem,
     HotspotsResponse,
@@ -15,6 +14,7 @@ import pytest
 from starlette.testclient import TestClient
 
 from backend.src.main import app
+
 
 @pytest.fixture
 def client(db):
@@ -33,6 +33,7 @@ def auth_headers(client):
     token = response.json().get("access_token", "fake-token")
     return {"Authorization": f"Bearer {token}"}
 
+
 @pytest.fixture(autouse=True)
 def mock_ai_provider():
     """Automatic AI provider mock for all tests."""
@@ -41,6 +42,7 @@ def mock_ai_provider():
     app.dependency_overrides[get_ai_provider] = lambda: mock_provider
     yield mock_provider
     app.dependency_overrides.pop(get_ai_provider, None)
+
 
 MOCK_HOTSPOTS = HotspotsResponse(
     hotspots=[
@@ -57,8 +59,9 @@ MOCK_HOTSPOTS = HotspotsResponse(
     ],
     total=5,
     ai_analysis="fake-analysis",
-    recommendations=["fake-recommendation-1", "fake-recommendation-2"]
+    recommendations=["fake-recommendation-1", "fake-recommendation-2"],
 )
+
 
 def mock_user():
     return {"username": "Admin", "password": "admin@123"}
@@ -73,10 +76,13 @@ def test_generate_requires_auth():
     )
     assert response.status_code == 401
 
+
 def test_generate_success():
     client = TestClient(app)
 
-    with patch("backend.src.modules.quality_intelligence.router.HotspotsService") as MockService:
+    with patch(
+        "backend.src.modules.quality_intelligence.router.HotspotsService"
+    ) as MockService:
         mock_instance = MagicMock()
         mock_instance.get_hotspots.return_value = MOCK_HOTSPOTS
         MockService.return_value = mock_instance
@@ -100,12 +106,17 @@ def test_generate_success():
         assert "recommendations" in data
     app.dependency_overrides.clear()
 
+
 def test_generate_success_empty():
     client = TestClient(app)
 
-    with patch("backend.src.modules.quality_intelligence.router.HotspotsService") as MockService:
+    with patch(
+        "backend.src.modules.quality_intelligence.router.HotspotsService"
+    ) as MockService:
         mock_instance = MagicMock()
-        mock_instance.get_hotspots.return_value = HotspotsResponse(hotspots=[], total=0, ai_analysis="", recommendations=[])
+        mock_instance.get_hotspots.return_value = HotspotsResponse(
+            hotspots=[], total=0, ai_analysis="", recommendations=[]
+        )
         MockService.return_value = mock_instance
 
         with patch(
@@ -126,5 +137,3 @@ def test_generate_success_empty():
         assert "ai_analysis" in data
         assert "recommendations" in data
     app.dependency_overrides.clear()
-
-    
