@@ -72,7 +72,7 @@ class HotspotsService(QualityIntelligenceBaseService):
         return "\n---\n".join(context_parts)
 
     def _build_hotspots_prompt(self, context):
-
+        """Build a prompt string from a AI return the analysis of hotspots."""
         prompt_parts = [
             f"context: {context}",
             "Aqui está o ranking de Stories por concentração de defeitos, já ordenado do mais crítico para o menos crítico.",

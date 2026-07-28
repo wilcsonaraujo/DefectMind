@@ -42,3 +42,23 @@ class HotspotsResponse(BaseModel):
     total: int
     ai_analysis: str
     recommendations: list[str]
+
+
+class GapType(str, Enum):
+    NO_TEST_CASE = "no_test_case"
+    NO_FUNCTIONAL_COVERAGE = "no_functional_coverage"
+    ORPHAN_TEST_CASE = "orphan_test_case"
+
+
+class CoverageGap(BaseModel):
+    node_id: str
+    title: str
+    label: str
+    gap_type: GapType
+
+
+class CoverageAnalysisResponse(BaseModel):
+    coverage_score: float
+    gaps: list[CoverageGap]
+    ai_analysis: str
+    recommendations: list[str]

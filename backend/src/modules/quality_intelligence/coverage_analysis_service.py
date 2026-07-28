@@ -1,0 +1,180 @@
+import json
+
+from backend.src.modules.quality_intelligence.base_service import (
+    QualityIntelligenceBaseService,
+)
+from backend.src.modules.quality_intelligence.schemas import (
+    CoverageAnalysisResponse,
+    CoverageGap,
+)
+
+
+class CoverageAnalysisService(QualityIntelligenceBaseService):
+    def __init__(self, neo4j_session, ai_provider):
+        super().__init__(neo4j_session, ai_provider)
+
+    def _get_uncovered_requirements(self) -> list[CoverageGap]:
+        """Searches for requirements that do not have any associated test cases."""
+        query = """
+        MATCH (r:Requirement)
+        WHERE COUNT { (r)-[:COVERED_BY]->(:TestCase) } = 0
+        RETURN
+            r.id AS node_id,
+            r.title AS title,
+            'Requirement' AS label,
+            'NO_TEST_CASE' AS gap_type
+        """
+        records = self.db_session.run(query)
+
+        return [
+            CoverageGap(
+                note_id=record["node_id"],
+                title=record["title"],
+                label=record["label"],
+                gap_type=record["gap_type"],
+            )
+            for record in records
+        ]
+
+    def _get_uncovered_stories(self) -> list[CoverageGap]:
+        """Search for stories that lack functional coverage (no associated test cases)."""
+        query = """
+        MATCH (s:Story)
+        WHERE COUNT { (s)-[:HAS_REQUIREMENT]->(:Requirement)-[:COVERED_BY]->(:TestCase) } = 0
+        RETURN
+            s.id AS node_id,
+            s.title AS title,
+            'Story' AS label,
+            'NO_FUNCTIONAL_COVERAGE' AS gap_type
+        """
+        records = self.db_session.run(query)
+
+        return [
+            CoverageGap(
+                note_id=record["node_id"],
+                title=record["title"],
+                label=record["label"],
+                gap_type=record["gap_type"],
+            )
+            for record in records
+        ]
+
+    def _get_orphan_test_cases(self) -> list[CoverageGap]:
+        """Searches for test cases that are not linked to any requirement."""
+        query = """
+        MATCH (tc:TestCase)
+        WHERE COUNT { (:Requirement)-[:COVERED_BY]->(tc) } = 0
+        RETURN
+            tc.id AS node_id,
+            tc.title AS title,
+            'TestCase' AS label,
+            'ORPHAN_TEST_CASE' AS gap_type
+        """
+        records = self.db_session.run(query)
+
+        return [
+            CoverageGap(
+                note_id=record["node_id"],
+                title=record["title"],
+                label=record["label"],
+                gap_type=record["gap_type"],
+            )
+            for record in records
+        ]
+
+    def _compute_coverage_score(self) -> float:
+        """Calculates the coverage score based solely on requirements."""
+
+        query = """
+        MATCH (r:Requirement)
+        WITH r, COUNT { (r)-[:COVERED_BY]->(:TestCase) } = 0 AS is_uncovered
+        RETURN
+            COUNT(r) AS total_requirements,
+            COUNT(CASE WHEN is_uncovered THEN 1 END) AS uncovered_requirements
+        """
+
+        result = self.db_session.run(query)
+        record = result.single()
+
+        if not record:
+            return 100.0
+
+        total = record["total_requirements"]
+        uncovered = record["uncovered_requirements"]
+
+        if total == 0:
+            return 100.0
+
+        covered = total - uncovered
+        return round((covered / total) * 100, 2)
+
+    def _build_coverage_context(self, coverages):
+        """Build a context string from a list of coverages."""
+
+        context_parts = []
+        for coverage in coverages:
+            part = f"[{coverage.label} - {coverage.gap_type}] title: {coverage.title}"
+
+        context_parts.append(part)
+        return "\n---\n".join(context_parts)
+
+    def _build_coverage_prompt(self, context, coverage_score):
+        """Build a prompt string from a AI return the analysis of coverages."""
+        prompt_parts = [
+            f"context: {context}",
+            f"Coverage score atual: {coverage_score}/100 (percentual de Requirements com pelo menos um TestCase vinculado).",
+            "As lacunas acima estão classificadas em três tipos:",
+            "- NO_TEST_CASE: Requirement sem nenhum TestCase vinculado.",
+            "- NO_FUNCTIONAL_COVERAGE: Story cujos Requirements não têm nenhum TestCase.",
+            "- ORPHAN_TEST_CASE: TestCase que não está vinculado a nenhum Requirement.",
+            "Analise essas lacunas e responda estritamente em JSON com:",
+            "- ai_analysis (texto): um resumo interpretando a situação geral de cobertura, destacando as áreas de maior risco e padrões entre as lacunas.",
+            "- recommendations (lista de strings): ações práticas e priorizadas para fechar primeiro as lacunas mais críticas.",
+        ]
+        return "\n".join(prompt_parts)
+
+    def get_ai_response(
+        self, prompt: str, gaps: list[CoverageGap]
+    ) -> CoverageAnalysisResponse:
+        """
+        Get the AI response for the hotspots analysis.
+        """
+        try:
+            ai_response = self._call_llm(prompt)
+            return CoverageAnalysisResponse(
+                coverage_score=self._compute_coverage_score(),
+                gaps=gaps,
+                ai_analysis=ai_response.get("ai_analysis", ""),
+                recommendations=ai_response.get("recommendations", []),
+            )
+        except json.JSONDecodeError as e:
+            raise ValueError(f"Failed to decode AI response: {e}")
+
+    def get_coverage_gap(self) -> CoverageAnalysisResponse:
+        """
+        Retrieve the coverage gap based in requirements and test cases.
+        """
+        records = self._get_uncovered_requirements()
+
+        coverages = [
+            CoverageGap(
+                note_id=record["node_id"],
+                title=record["title"],
+                label=record["label"],
+                gap_type=record["gap_type"],
+            )
+            for record in records
+        ]
+
+        if not coverages:
+            return CoverageGap(
+                note_id="",
+                title="",
+                label="",
+                gap_type=[],
+            )
+
+        context = self._build_coverage_context(coverages)
+        coverage_score = self._compute_coverage_score()
+        prompt = self._build_coverage_prompt(context, coverage_score)
+        return self.get_ai_response(prompt, coverages)
