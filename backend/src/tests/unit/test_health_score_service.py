@@ -28,13 +28,14 @@ def fake_db():
 
 @pytest.fixture
 def service(fake_db):
-    return HealthScoreService(neo4j_session=fake_db, ai_provider=MagicMock())
+    return HealthScoreService(
+        neo4j_session=fake_db, ai_provider=MagicMock())
 
 
 class TestBuildHealthScorePrompt:
     def test_node_not_found(self, fake_db, service):
         fake_db.run.return_value = make_neo4j_result([])
-        result = service._build_health_score_prompt("nonexistent_node_id")
+        result = service._fetch_health_score_data("nonexistent_node_id")
         assert result is None
 
     def test_node_found_with_no_connected_nodes(self, fake_db, service):
@@ -54,7 +55,7 @@ class TestBuildHealthScorePrompt:
                 }
             ]
         )
-        result = service._build_health_score_prompt("1")
+        result = service._fetch_health_score_data("1")
         assert result is not None
         assert result["main_node"]["id"] == "1"
         assert result["degree"] == 0
@@ -80,7 +81,7 @@ class TestBuildHealthScorePrompt:
                 }
             ]
         )
-        result = service._build_health_score_prompt("1")
+        result = service._fetch_health_score_data("1")
         assert result is not None
         assert result["main_node"]["id"] == "1"
         assert result["degree"] == 2
@@ -88,31 +89,31 @@ class TestBuildHealthScorePrompt:
 
 
 class TestBuildPrompt:
-    def test_build_prompt_structure(self, service):
+    def test_build_health_score_prompt_structure(self, service):
         context = "Sample context"
         health_score_data = {
             "main_node": {"title": "Main Node", "label": "Artifact"},
             "nodes_by_type": {"Story": 2, "Bug": 1},
         }
-        prompt = service._build_prompt(context, health_score_data)
+        prompt = service._build_health_score_prompt(context, health_score_data)
         assert "context: Sample context" in prompt
         assert "Main Node: Main Node (Type: Artifact)" in prompt
         assert "Nodes by Type: {'Story': 2, 'Bug': 1}" in prompt
         assert "Answer strictly in JSON" in prompt
 
-    def test_build_prompt_with_main_node_missing(self, service):
+    def test_build_health_score_prompt_with_main_node_missing(self, service):
         context = "Sample context"
         health_score_data = {"main_node": {}, "nodes_by_type": {"Story": 2, "Bug": 1}}
-        prompt = service._build_prompt(context, health_score_data)
+        prompt = service._build_health_score_prompt(context, health_score_data)
         assert "Main Node: None (Type: None)" in prompt
 
-    def test_build_prompt_with_json_instruction(self, service):
+    def test_build_health_score_prompt_with_json_instruction(self, service):
         context = "Sample context"
         health_score_data = {
             "main_node": {"title": "Main Node", "label": "Artifact"},
             "nodes_by_type": {"Story": 2, "Bug": 1},
         }
-        prompt = service._build_prompt(context, health_score_data)
+        prompt = service._build_health_score_prompt(context, health_score_data)
         assert "Answer strictly in JSON with the fields" in prompt
 
 

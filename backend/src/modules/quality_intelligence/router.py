@@ -1,8 +1,10 @@
 import logging
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from neo4j import Session
+
+from backend.src.modules.quality_intelligence.hotspots_service import HotspotsService
 
 logger = logging.getLogger(__name__)
 
@@ -17,6 +19,7 @@ from backend.src.modules.quality_intelligence.health_score_service import (
 from backend.src.modules.quality_intelligence.schemas import (
     HealthScoreRequest,
     HealthScoreResponse,
+    HotspotsResponse,
 )
 
 router = APIRouter(dependencies=[Depends(get_current_user)])
@@ -55,4 +58,29 @@ def generate_health_score(
         )
         raise HTTPException(
             status_code=500, detail="Error occurred while generating health score."
+        )
+
+
+@router.get(
+    "/hotspots",
+    response_model=HotspotsResponse,
+    summary="Get the hotspots of the system",
+)
+def generate_hotspots(
+    neo4j: Neo4jSession,
+    provider: Provider,
+    current_user: CurrentUser,
+    limit: int = Query(default=10, gt=0, le=100),
+):
+    service = HotspotsService(neo4j_session=neo4j, ai_provider=provider)
+
+    try:
+        return service.get_hotspots(limit)
+    except ValueError as e:
+        logger.error(f"Failed to parse AI response for hotspots: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+    except Exception:
+        logger.exception("Unexpected error generating hotspots")
+        raise HTTPException(
+            status_code=500, detail="Error occurred while generating hotspots."
         )

@@ -13,9 +13,9 @@ class QualityIntelligenceBaseService:
     def _get_label(self, node):
         return get_node_label(node, fallback="Artifact")
 
-    def _build_context(self, nodes):
+    def _build_health_score_context(self, nodes):
         """
-        Build a context string from a list of nodes.
+        Build a health score context string from a list of nodes.
         Each node is expected to have a 'title' and 'description' attribute.
         """
         context_parts = []
@@ -32,7 +32,7 @@ class QualityIntelligenceBaseService:
 
         return "\n---\n".join(context_parts)
 
-    def _build_prompt(self, context, health_score_data):
+    def _build_health_score_prompt(self, context, health_score_data):
         """
         Build a prompt string from health score data.
         """
