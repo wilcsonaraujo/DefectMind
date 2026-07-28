@@ -79,7 +79,6 @@ class TestBuildHotspotsPrompt:
         2. There are Stories, but none have defects (score = 0).
         """
         fake_db.run.return_value = make_neo4j_result([])
-        mock_ai = MagicMock()
         result = service.get_hotspots(limit=10)
 
         assert result.hotspots == []
