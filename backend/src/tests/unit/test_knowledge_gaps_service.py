@@ -6,8 +6,8 @@ from backend.src.modules.quality_intelligence.knowledge_gaps_service import (
     KnowledgeGapsService,
 )
 from backend.src.modules.quality_intelligence.schemas import (
-    KnowledgeGapType,
     KnowledgeGap,
+    KnowledgeGapType,
 )
 from backend.src.tests.unit.conftest import make_neo4j_result
 
@@ -46,13 +46,13 @@ MOCK_INCIDENTS_WITHOUT_POSTMORTEM_ROWS = [
         "node_id": "inc-001",
         "title": "Indisponibilidade do sistema de pagamentos",
         "label": "Incident",
-        "gap_type": "NO_POSTMORTEM",
+        "gap_type": "INCIDENT_WITHOUT_POSTMORTEM",
     },
     {
         "node_id": "inc-002",
         "title": "Falha na integração com API de frete",
         "label": "Incident",
-        "gap_type": "NO_POSTMORTEM",
+        "gap_type": "INCIDENT_WITHOUT_POSTMORTEM",
     },
 ]
 MOCK_INCIDENTS_WITHOUT_POSTMORTEM = [
@@ -64,25 +64,25 @@ MOCK_REQUIREMENTS_WITHOUT_STORY_ROWS = [
         "node_id": "req-001",
         "title": "Requisito de autenticação biométrica",
         "label": "Requirement",
-        "gap_type": "NO_STORY",
+        "gap_type": "REQUIREMENT_WITHOUT_STORY",
     },
     {
         "node_id": "req-002",
         "title": "Requisito de integração com ERP",
         "label": "Requirement",
-        "gap_type": "NO_STORY",
+        "gap_type": "REQUIREMENT_WITHOUT_STORY",
     },
     {
         "node_id": "req-003",
         "title": "Requisito de relatórios em tempo real",
         "label": "Requirement",
-        "gap_type": "NO_STORY",
+        "gap_type": "REQUIREMENT_WITHOUT_STORY",
     },
     {
         "node_id": "req-004",
         "title": "Requisito de cache distribuído",
         "label": "Requirement",
-        "gap_type": "NO_STORY",
+        "gap_type": "REQUIREMENT_WITHOUT_STORY",
     },
 ]
 MOCK_REQUIREMENTS_WITHOUT_STORY = [
@@ -94,13 +94,13 @@ MOCK_STORIES_WITHOUT_REQUIREMENTS_ROWS = [
         "node_id": "story-001",
         "title": "Dashboard de Monitoramento",
         "label": "Story",
-        "gap_type": "NO_REQUIREMENTS",
+        "gap_type": "STORY_WITHOUT_REQUIREMENT",
     },
     {
         "node_id": "story-002",
         "title": "Sistema de Notificações Push",
         "label": "Story",
-        "gap_type": "NO_REQUIREMENTS",
+        "gap_type": "STORY_WITHOUT_REQUIREMENT",
     },
 ]
 MOCK_STORIES_WITHOUT_REQUIREMENTS = [
@@ -112,7 +112,7 @@ class TestBuildKnowledgePrompt:
     def test_get_bugs_without_test_case(self, service, fake_db):
         """Test bugs without test case"""
         fake_db.run.return_value = make_neo4j_result(MOCK_BUGS_WITHOUT_TEST_CASE_ROWS)
-        result = self._get_bugs_without_test_case()
+        result = service._get_bugs_without_test_case()
 
         assert len(result) == 3
         assert isinstance(result[1], KnowledgeGap)
@@ -126,7 +126,7 @@ class TestBuildKnowledgePrompt:
         fake_db.run.return_value = make_neo4j_result(
             MOCK_INCIDENTS_WITHOUT_POSTMORTEM_ROWS
         )
-        result = self._get_incidents_without_postmortem()
+        result = service._get_incidents_without_postmortem()
 
         assert len(result) == 2
         assert isinstance(result[0], KnowledgeGap)
@@ -140,7 +140,7 @@ class TestBuildKnowledgePrompt:
         fake_db.run.return_value = make_neo4j_result(
             MOCK_REQUIREMENTS_WITHOUT_STORY_ROWS
         )
-        result = self._get_requirements_without_story()
+        result = service._get_requirements_without_story()
 
         assert len(result) == 4
         assert isinstance(result[2], KnowledgeGap)
@@ -154,7 +154,7 @@ class TestBuildKnowledgePrompt:
         fake_db.run.return_value = make_neo4j_result(
             MOCK_STORIES_WITHOUT_REQUIREMENTS_ROWS
         )
-        result = self._get_stories_without_requirements()
+        result = service._get_stories_without_requirements()
 
         assert len(result) == 2
         assert isinstance(result[1], KnowledgeGap)
@@ -196,7 +196,7 @@ class TestBuildKnowledgePrompt:
         assert result[0].gap_type == KnowledgeGapType.BUG_WITHOUT_TEST_CASE
         assert result[3].gap_type == KnowledgeGapType.INCIDENT_WITHOUT_POSTMORTEM
         assert result[5].gap_type == KnowledgeGapType.REQUIREMENT_WITHOUT_STORY
-        assert result[5].gap_type == KnowledgeGapType.STORY_WITHOUT_REQUIREMENT
+        assert result[9].gap_type == KnowledgeGapType.STORY_WITHOUT_REQUIREMENT
 
     def test_get_knowledge_gap_skips_llm(self, service, fake_db):
         """No gap in any category -> empty response, LLM not called."""
