@@ -7,6 +7,7 @@ from backend.src.modules.quality_intelligence.hotspots_service import (
     HotspotsService,
 )
 from backend.src.modules.quality_intelligence.schemas import HotspotItem
+from backend.src.tests.unit.conftest import make_neo4j_result
 
 mock_records = [
     {
@@ -45,28 +46,9 @@ hotspots = [
 ]
 
 
-def make_record(**kwargs):
-    """Creates an object that simulates a Neo4j record (key-based access)."""
-    return kwargs
-
-
-def make_neo4j_result(records: list):
-    """Creates a mock result for db.run() that iterates like a list."""
-    mock = MagicMock()
-    mock.__iter__ = MagicMock(return_value=iter(records))
-    mock.single = MagicMock(return_value=records[0] if records else None)
-    return mock
-
-
-@pytest.fixture
-def fake_db():
-    return MagicMock()
-
-
 @pytest.fixture
 def service(fake_db):
-    return HotspotsService(
-        neo4j_session=fake_db, ai_provider=MagicMock())
+    return HotspotsService(neo4j_session=fake_db, ai_provider=MagicMock())
 
 
 class TestBuildHotspotsPrompt:

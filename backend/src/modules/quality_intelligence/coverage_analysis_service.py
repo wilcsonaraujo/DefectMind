@@ -109,6 +109,14 @@ class CoverageAnalysisService(QualityIntelligenceBaseService):
         covered = total - uncovered
         return round((covered / total) * 100, 2)
 
+    def _get_all_gaps_chain(self) -> list[CoverageGap]:
+        """Unifies the three lists using itertools.chain."""
+        return list(chain(
+            self._get_uncovered_requirements(),
+            self._get_uncovered_stories(),
+            self._get_orphan_test_cases()
+        ))
+
     def _build_coverage_context(self, coverages):
         """Build a context string from a list of coverages."""
 
@@ -149,14 +157,6 @@ class CoverageAnalysisService(QualityIntelligenceBaseService):
             )
         except json.JSONDecodeError as e:
             raise ValueError(f"Failed to decode AI response: {e}")
-
-    def _get_all_gaps_chain(self) -> list[CoverageGap]:
-        """Unifies the three lists using itertools.chain."""
-        return list(chain(
-            self._get_uncovered_requirements(),
-            self._get_uncovered_stories(),
-            self._get_orphan_test_cases()
-        ))
 
     def get_coverage_analysis(self) -> CoverageAnalysisResponse:
         """
