@@ -11,10 +11,8 @@ os.environ.setdefault("GEMINI_API_KEY", "fake-key-for-tests")
 
 from unittest.mock import MagicMock, patch
 
-import pytest
 from starlette.testclient import TestClient
 
-from backend.src.core.ai.provider_factory import get_ai_provider
 from backend.src.main import app
 
 
@@ -72,11 +70,10 @@ def test_generate_success():
             headers={"Authorization": "Bearer valid-token"},
         )
 
-    assert response.status_code in (200, 401)
-    if response.status_code == 200:
-        data = response.json()
-        assert "coverage_score" in data
-        assert "gaps" in data
-        assert "ai_analysis" in data
-        assert "recommendations" in data
+    assert response.status_code == 200
+    data = response.json()
+    assert "coverage_score" in data
+    assert "gaps" in data
+    assert "ai_analysis" in data
+    assert "recommendations" in data
     app.dependency_overrides.clear()

@@ -1,6 +1,5 @@
 import os
 
-from backend.src.core.ai.provider_factory import get_ai_provider
 from backend.src.core.dependencies import get_current_user
 from backend.src.modules.quality_intelligence.schemas import (
     EvidenceItem,

@@ -6,10 +6,8 @@ os.environ.setdefault("GEMINI_API_KEY", "fake-key-for-tests")
 
 from unittest.mock import MagicMock, patch
 
-import pytest
 from starlette.testclient import TestClient
 
-from backend.src.core.ai.provider_factory import get_ai_provider
 from backend.src.main import app
 from backend.src.modules.quality_intelligence.schemas import (
     HotspotItem,
@@ -49,7 +47,6 @@ def test_generate_requires_auth():
 
 def test_generate_success():
     client = TestClient(app)
-
     with patch(
         "backend.src.modules.quality_intelligence.router.HotspotsService"
     ) as MockService:
@@ -63,13 +60,12 @@ def test_generate_success():
             headers={"Authorization": "Bearer valid-token"},
         )
 
-    assert response.status_code in (200, 401)
-    if response.status_code == 200:
-        data = response.json()
-        assert "hotspots" in data
-        assert "total" in data
-        assert "ai_analysis" in data
-        assert "recommendations" in data
+    assert response.status_code == 200
+    data = response.json()
+    assert "hotspots" in data
+    assert "total" in data
+    assert "ai_analysis" in data
+    assert "recommendations" in data
     app.dependency_overrides.clear()
 
 
@@ -86,21 +82,15 @@ def test_generate_success_empty():
         MockService.return_value = mock_instance
         app.dependency_overrides[get_current_user] = mock_user
 
-        with patch(
-            "backend.src.modules.quality_intelligence.router.generate_hotspots"
-        ) as MockFactory:
-            MockFactory.return_value = MagicMock()
+        response = client.get(
+            "/api/v1/quality-intelligence/hotspots",
+            headers={"Authorization": "Bearer valid-token"},
+        )
 
-            response = client.get(
-                "/api/v1/quality-intelligence/hotspots",
-                headers={"Authorization": "Bearer valid-token"},
-            )
-
-    assert response.status_code in (200, 401)
-    if response.status_code == 200:
-        data = response.json()
-        assert "hotspots" in data
-        assert "total" in data
-        assert "ai_analysis" in data
-        assert "recommendations" in data
+    assert response.status_code == 200
+    data = response.json()
+    assert "hotspots" in data
+    assert "total" in data
+    assert "ai_analysis" in data
+    assert "recommendations" in data
     app.dependency_overrides.clear()
