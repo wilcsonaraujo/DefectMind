@@ -1,5 +1,5 @@
-from itertools import chain
 import json
+from itertools import chain
 
 from backend.src.modules.quality_intelligence.base_service import (
     QualityIntelligenceBaseService,

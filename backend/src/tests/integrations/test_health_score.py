@@ -5,6 +5,7 @@ from backend.src.modules.quality_intelligence.schemas import (
     EvidenceItem,
     HealthScoreResponse,
 )
+from backend.src.tests.integrations.conftest import mock_user
 
 os.environ.setdefault("GEMINI_API_KEY", "fake-key-for-tests")
 
@@ -46,10 +47,6 @@ MOCK_HEALTH_STATS = HealthScoreResponse(
     recommendations=["fake-recommendation-1", "fake-recommendation-2"],
     risk_classification="LOW",
 )
-
-
-def mock_user():
-    return {"username": "Admin", "password": "admin@123"}
 
 
 def test_generate_requires_auth():

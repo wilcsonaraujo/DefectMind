@@ -14,11 +14,7 @@ from unittest.mock import MagicMock, patch
 from starlette.testclient import TestClient
 
 from backend.src.main import app
-
-
-def mock_user():
-    return {"username": "Admin", "password": "admin@123"}
-
+from backend.src.tests.integrations.conftest import mock_user
 
 MOCK_COVERAGE = CoverageAnalysisResponse(
     coverage_score=75.5,

@@ -13,11 +13,7 @@ from backend.src.modules.quality_intelligence.schemas import (
     HotspotItem,
     HotspotsResponse,
 )
-
-
-def mock_user():
-    return {"username": "Admin", "password": "admin@123"}
-
+from backend.src.tests.integrations.conftest import mock_user
 
 MOCK_HOTSPOTS = HotspotsResponse(
     hotspots=[

@@ -8,7 +8,9 @@ from backend.src.modules.quality_intelligence.coverage_analysis_service import (
     CoverageAnalysisService,
 )
 from backend.src.modules.quality_intelligence.hotspots_service import HotspotsService
-from backend.src.modules.quality_intelligence.knowledge_gaps_service import KnowledgeGapsService
+from backend.src.modules.quality_intelligence.knowledge_gaps_service import (
+    KnowledgeGapsService,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -112,6 +114,7 @@ def generate_coverage(
         raise HTTPException(
             status_code=500, detail="Error occurred while generating coverage gap."
         )
+
 
 @router.get(
     "/knowledge-gaps",
