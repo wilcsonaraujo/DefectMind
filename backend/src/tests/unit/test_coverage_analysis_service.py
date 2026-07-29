@@ -81,7 +81,7 @@ MOCK_ORPHAN_TEST_CASES_ROWS = [
 MOCK_ORPHAN_TEST_CASES = [CoverageGap(**row) for row in MOCK_ORPHAN_TEST_CASES_ROWS]
 
 
-class TestBuildCoveragePrompt:
+class TestBuildCoverage:
     def test_coverage_score(self, service, fake_db):
         """Coverage gap calculation test"""
         fake_db.run.return_value = make_neo4j_result(
@@ -142,7 +142,7 @@ class TestBuildCoveragePrompt:
 
         fake_db.run.assert_called_once()
 
-    def test_get_all_gaps_chain(self, service, fake_db):
+    def test_get_all_gaps_chain(self, service):
         """Test validate the list of coverage gap junctions"""
 
         service._get_uncovered_requirements = MagicMock(

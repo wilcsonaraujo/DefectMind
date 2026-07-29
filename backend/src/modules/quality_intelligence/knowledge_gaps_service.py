@@ -18,7 +18,7 @@ class KnowledgeGapsService(QualityIntelligenceBaseService):
         """Searches for bugs that do not have any associated test cases"""
         query = """
         MATCH (b:BugReport)
-        WHERE COUNT { (b)-[:FOUND_BY]->(:TestCase) } = 0
+        WHERE COUNT { (b)-[:FOUND]->(:TestCase) } = 0
         RETURN
             b.id AS node_id,
             b.title AS title,
@@ -46,7 +46,7 @@ class KnowledgeGapsService(QualityIntelligenceBaseService):
             i.id AS node_id,
             i.title AS title,
             'Incident' AS label,
-            'NO_POSTMORTEM' AS gap_type
+            'INCIDENT_WITHOUT_POSTMORTEM' AS gap_type
         """
 
         records = self.db_session.run(query)
@@ -69,7 +69,7 @@ class KnowledgeGapsService(QualityIntelligenceBaseService):
             r.id AS node_id,
             r.title AS title,
             'Requirement' AS label,
-            'NO_STORY' AS gap_type
+            'REQUIREMENT_WITHOUT_STORY' AS gap_type
         """
 
         records = self.db_session.run(query)
@@ -92,7 +92,7 @@ class KnowledgeGapsService(QualityIntelligenceBaseService):
             s.id AS node_id,
             s.title AS title,
             'Story' AS label,
-            'NO_REQUIREMENTS' AS gap_type
+            'STORY_WITHOUT_REQUIREMENT' AS gap_type
         """
 
         records = self.db_session.run(query)
@@ -165,6 +165,6 @@ class KnowledgeGapsService(QualityIntelligenceBaseService):
                 recommendations=[],
             )
 
-        context = self._build_health_score_context(records)
-        prompt = self._build_health_score_prompt(context)
+        context = self._build_knowledge_gaps_context(records)
+        prompt = self._build_knowledge_gaps_prompt(context)
         return self.get_ai_response(prompt, records)

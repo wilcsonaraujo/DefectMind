@@ -121,7 +121,7 @@ def generate_coverage(
     response_model=KnowledgeGapsResponse,
     summary="Get the knowledge gap of the system",
 )
-def generate_coverage(
+def generate_knowledge_gap(
     neo4j: Neo4jSession, provider: Provider, current_user: CurrentUser
 ):
     service = KnowledgeGapsService(neo4j_session=neo4j, ai_provider=provider)

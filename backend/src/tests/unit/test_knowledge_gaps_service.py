@@ -108,7 +108,7 @@ MOCK_STORIES_WITHOUT_REQUIREMENTS = [
 ]
 
 
-class TestBuildKnowledgePrompt:
+class TestBuildKnowledge:
     def test_get_bugs_without_test_case(self, service, fake_db):
         """Test bugs without test case"""
         fake_db.run.return_value = make_neo4j_result(MOCK_BUGS_WITHOUT_TEST_CASE_ROWS)
@@ -163,7 +163,7 @@ class TestBuildKnowledgePrompt:
         assert result[1].label == "Story"
         assert result[1].gap_type == KnowledgeGapType.STORY_WITHOUT_REQUIREMENT
 
-    def test_get_knowledge_analysis_no_gaps_skips_llm(self, service, fake_db):
+    def test_get_knowledge_analysis_no_gaps(self, service):
         """Test validate the list of knowledge gap junctions"""
         service._get_bugs_without_test_case = MagicMock(
             return_value=MOCK_BUGS_WITHOUT_TEST_CASE
