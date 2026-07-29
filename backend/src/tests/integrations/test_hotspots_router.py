@@ -1,5 +1,7 @@
 import os
 
+from backend.src.core.dependencies import get_current_user
+
 os.environ.setdefault("GEMINI_API_KEY", "fake-key-for-tests")
 
 from unittest.mock import MagicMock, patch
@@ -15,14 +17,8 @@ from backend.src.modules.quality_intelligence.schemas import (
 )
 
 
-@pytest.fixture(autouse=True)
-def mock_ai_provider():
-    """Automatic AI provider mock for all tests."""
-    mock_provider = MagicMock()
-    mock_provider.generate_json.return_value = {"result": "mocked"}
-    app.dependency_overrides[get_ai_provider] = lambda: mock_provider
-    yield mock_provider
-    app.dependency_overrides.pop(get_ai_provider, None)
+def mock_user():
+    return {"username": "Admin", "password": "admin@123"}
 
 
 MOCK_HOTSPOTS = HotspotsResponse(
@@ -60,6 +56,7 @@ def test_generate_success():
         mock_instance = MagicMock()
         mock_instance.get_hotspots.return_value = MOCK_HOTSPOTS
         MockService.return_value = mock_instance
+        app.dependency_overrides[get_current_user] = mock_user
 
         response = client.get(
             "/api/v1/quality-intelligence/hotspots",
@@ -87,6 +84,7 @@ def test_generate_success_empty():
             hotspots=[], total=0, ai_analysis="", recommendations=[]
         )
         MockService.return_value = mock_instance
+        app.dependency_overrides[get_current_user] = mock_user
 
         with patch(
             "backend.src.modules.quality_intelligence.router.generate_hotspots"

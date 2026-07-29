@@ -1,4 +1,5 @@
 import json
+from itertools import chain
 
 from backend.src.modules.quality_intelligence.base_service import (
     QualityIntelligenceBaseService,
@@ -28,7 +29,7 @@ class CoverageAnalysisService(QualityIntelligenceBaseService):
 
         return [
             CoverageGap(
-                note_id=record["node_id"],
+                node_id=record["node_id"],
                 title=record["title"],
                 label=record["label"],
                 gap_type=record["gap_type"],
@@ -51,7 +52,7 @@ class CoverageAnalysisService(QualityIntelligenceBaseService):
 
         return [
             CoverageGap(
-                note_id=record["node_id"],
+                node_id=record["node_id"],
                 title=record["title"],
                 label=record["label"],
                 gap_type=record["gap_type"],
@@ -74,7 +75,7 @@ class CoverageAnalysisService(QualityIntelligenceBaseService):
 
         return [
             CoverageGap(
-                note_id=record["node_id"],
+                node_id=record["node_id"],
                 title=record["title"],
                 label=record["label"],
                 gap_type=record["gap_type"],
@@ -113,9 +114,8 @@ class CoverageAnalysisService(QualityIntelligenceBaseService):
 
         context_parts = []
         for coverage in coverages:
-            part = f"[{coverage.label} - {coverage.gap_type}] title: {coverage.title}"
-
-        context_parts.append(part)
+            part = (f"[{coverage.label} - {coverage.gap_type}] title: {coverage.title}")
+            context_parts.append(part)
         return "\n---\n".join(context_parts)
 
     def _build_coverage_prompt(self, context, coverage_score):
@@ -134,15 +134,15 @@ class CoverageAnalysisService(QualityIntelligenceBaseService):
         return "\n".join(prompt_parts)
 
     def get_ai_response(
-        self, prompt: str, gaps: list[CoverageGap]
+        self, prompt: str, gaps: list[CoverageGap], coverage_score: float
     ) -> CoverageAnalysisResponse:
         """
-        Get the AI response for the hotspots analysis.
+        Get the AI response for the coverage gap analysis.
         """
         try:
             ai_response = self._call_llm(prompt)
             return CoverageAnalysisResponse(
-                coverage_score=self._compute_coverage_score(),
+                coverage_score=coverage_score,
                 gaps=gaps,
                 ai_analysis=ai_response.get("ai_analysis", ""),
                 recommendations=ai_response.get("recommendations", []),
@@ -150,31 +150,29 @@ class CoverageAnalysisService(QualityIntelligenceBaseService):
         except json.JSONDecodeError as e:
             raise ValueError(f"Failed to decode AI response: {e}")
 
-    def get_coverage_gap(self) -> CoverageAnalysisResponse:
+    def _get_all_gaps_chain(self) -> list[CoverageGap]:
+        """Unifies the three lists using itertools.chain."""
+        return list(chain(
+            self._get_uncovered_requirements(),
+            self._get_uncovered_stories(),
+            self._get_orphan_test_cases()
+        ))
+
+    def get_coverage_analysis(self) -> CoverageAnalysisResponse:
         """
         Retrieve the coverage gap based in requirements and test cases.
         """
-        records = self._get_uncovered_requirements()
+        records = self._get_all_gaps_chain()
 
-        coverages = [
-            CoverageGap(
-                note_id=record["node_id"],
-                title=record["title"],
-                label=record["label"],
-                gap_type=record["gap_type"],
-            )
-            for record in records
-        ]
-
-        if not coverages:
-            return CoverageGap(
-                note_id="",
-                title="",
-                label="",
-                gap_type=[],
+        if not records:
+            return CoverageAnalysisResponse(
+                coverage_score=100.0,
+                gaps=[],
+                ai_analysis="",
+                recommendations=[],
             )
 
-        context = self._build_coverage_context(coverages)
+        context = self._build_coverage_context(records)
         coverage_score = self._compute_coverage_score()
         prompt = self._build_coverage_prompt(context, coverage_score)
-        return self.get_ai_response(prompt, coverages)
+        return self.get_ai_response(prompt, records, coverage_score)

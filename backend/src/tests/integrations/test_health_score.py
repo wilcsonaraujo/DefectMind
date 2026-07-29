@@ -34,14 +34,6 @@ def auth_headers(client):
     token = response.json().get("access_token", "fake-token")
     return {"Authorization": f"Bearer {token}"}
 
-@pytest.fixture(autouse=True)
-def mock_ai_provider():
-    """Automatic AI provider mock for all tests."""
-    mock_provider = MagicMock()
-    mock_provider.generate_json.return_value = {"result": "mocked"}
-    app.dependency_overrides[get_ai_provider] = lambda: mock_provider
-    yield mock_provider
-    app.dependency_overrides.pop(get_ai_provider, None)
 
 MOCK_HEALTH_STATS = HealthScoreResponse(
     evidence=[
@@ -70,6 +62,7 @@ def test_generate_requires_auth():
     )
     assert response.status_code == 401
 
+
 def test_health_score_returns_200_with_valid_token():
     """The endpoint must return a 200 with a complete structure when authenticated."""
     app.dependency_overrides[get_current_user] = mock_user
@@ -81,17 +74,7 @@ def test_health_score_returns_200_with_valid_token():
         mock_instance = MagicMock()
         mock_instance.build_health_score_prompt.return_value = "Test Prompt"
         mock_instance.get_ai_response.return_value = MOCK_HEALTH_STATS.model_dump()
-        mock_instance._build_health_score_prompt.return_value = {
-            "main_node": {"id": "test-id"},
-            "total_nodes": 10,
-            "total_edges": 15,
-            "nodes_by_type": {"Story": 5, "Bug": 3},
-            "degree": 5,
-            "connected_nodes": [],
-            "connected_count": 9,
-            "relationships_count": 15
-        }
-        
+
         MockService.return_value = mock_instance
 
         response = client.post(
@@ -129,5 +112,3 @@ def test_health_score_returns_404_for_nonexistent_node():
 
     assert response.status_code == 404
     app.dependency_overrides.clear()
-
-

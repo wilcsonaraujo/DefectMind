@@ -101,7 +101,7 @@ def generate_coverage(
     service = CoverageAnalysisService(neo4j_session=neo4j, ai_provider=provider)
 
     try:
-        return service.get_coverage_gap()
+        return service.get_coverage_analysis()
     except ValueError as e:
         logger.error(f"Failed to parse AI response for Coverage Gap: {e}")
         raise HTTPException(status_code=500, detail=str(e))

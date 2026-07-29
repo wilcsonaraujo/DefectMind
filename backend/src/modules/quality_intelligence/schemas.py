@@ -45,9 +45,9 @@ class HotspotsResponse(BaseModel):
 
 
 class GapType(str, Enum):
-    NO_TEST_CASE = "no_test_case"
-    NO_FUNCTIONAL_COVERAGE = "no_functional_coverage"
-    ORPHAN_TEST_CASE = "orphan_test_case"
+    NO_TEST_CASE = "NO_TEST_CASE"
+    NO_FUNCTIONAL_COVERAGE = "NO_FUNCTIONAL_COVERAGE"
+    ORPHAN_TEST_CASE = "ORPHAN_TEST_CASE"
 
 
 class CoverageGap(BaseModel):
