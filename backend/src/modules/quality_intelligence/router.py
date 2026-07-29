@@ -8,6 +8,7 @@ from backend.src.modules.quality_intelligence.coverage_analysis_service import (
     CoverageAnalysisService,
 )
 from backend.src.modules.quality_intelligence.hotspots_service import HotspotsService
+from backend.src.modules.quality_intelligence.knowledge_gaps_service import KnowledgeGapsService
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +25,7 @@ from backend.src.modules.quality_intelligence.schemas import (
     HealthScoreRequest,
     HealthScoreResponse,
     HotspotsResponse,
+    KnowledgeGapsResponse,
 )
 
 router = APIRouter(dependencies=[Depends(get_current_user)])
@@ -109,4 +111,25 @@ def generate_coverage(
         logger.exception("Unexpected error generating coverage gap.")
         raise HTTPException(
             status_code=500, detail="Error occurred while generating coverage gap."
+        )
+
+@router.get(
+    "/knowledge-gaps",
+    response_model=KnowledgeGapsResponse,
+    summary="Get the knowledge gap of the system",
+)
+def generate_coverage(
+    neo4j: Neo4jSession, provider: Provider, current_user: CurrentUser
+):
+    service = KnowledgeGapsService(neo4j_session=neo4j, ai_provider=provider)
+
+    try:
+        return service.get_knowledge_gaps()
+    except ValueError as e:
+        logger.error(f"Failed to parse AI response for Knowledge Gap: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+    except Exception:
+        logger.exception("Unexpected error generating knowledge gap.")
+        raise HTTPException(
+            status_code=500, detail="Error occurred while generating knowledge gap."
         )

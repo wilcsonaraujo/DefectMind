@@ -4,7 +4,11 @@ import json
 from backend.src.modules.quality_intelligence.base_service import (
     QualityIntelligenceBaseService,
 )
-from backend.src.modules.quality_intelligence.schemas import KnowledgeGap, KnowledgeGapsResponse
+from backend.src.modules.quality_intelligence.schemas import (
+    KnowledgeGap,
+    KnowledgeGapsResponse,
+)
+
 
 class KnowledgeGapsService(QualityIntelligenceBaseService):
     def __init__(self, neo4j_session, ai_provider):
@@ -104,18 +108,22 @@ class KnowledgeGapsService(QualityIntelligenceBaseService):
 
     def _get_all_gaps_chain(self) -> list[KnowledgeGap]:
         """Unifies the three lists using itertools.chain."""
-        return list(chain(
-            self._get_bugs_without_test_case(),
-            self._get_incidents_without_postmortem(),
-            self._get_requirements_without_story(),
-            self._get_stories_without_requirements()
-        ))
+        return list(
+            chain(
+                self._get_bugs_without_test_case(),
+                self._get_incidents_without_postmortem(),
+                self._get_requirements_without_story(),
+                self._get_stories_without_requirements(),
+            )
+        )
 
     def _build_knowledge_gaps_context(self, knowledges):
         """Build a context string from a list of knowledges"""
         context_parts = []
         for knowledge in knowledges:
-            part = (f"[{knowledge.label} - {knowledge.gap_type}] title: {knowledge.title}")
+            part = (
+                f"[{knowledge.label} - {knowledge.gap_type}] title: {knowledge.title}"
+            )
             context_parts.append(part)
         return "\n---\n".join(context_parts)
 
