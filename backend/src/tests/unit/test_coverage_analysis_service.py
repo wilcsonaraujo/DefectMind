@@ -1,4 +1,3 @@
-import json
 from unittest.mock import ANY, MagicMock, call  # noqa: F401
 
 import pytest
