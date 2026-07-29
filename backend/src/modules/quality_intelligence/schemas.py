@@ -62,3 +62,23 @@ class CoverageAnalysisResponse(BaseModel):
     gaps: list[CoverageGap]
     ai_analysis: str
     recommendations: list[str]
+
+
+class KnowledgeGapType(str, Enum):
+    BUG_WITHOUT_TEST_CASE = "BUG_WITHOUT_TEST_CASE"
+    INCIDENT_WITHOUT_POSTMORTEM = "INCIDENT_WITHOUT_POSTMORTEM"
+    REQUIREMENT_WITHOUT_STORY = "REQUIREMENT_WITHOUT_STORY"
+    STORY_WITHOUT_REQUIREMENT = "STORY_WITHOUT_REQUIREMENT"
+
+
+class KnowledgeGap(BaseModel):
+    node_id: str
+    title: str
+    label: str
+    gap_type: KnowledgeGapType
+
+
+class KnowledgeGapsResponse(BaseModel):
+    gaps: list[KnowledgeGap]
+    ai_analysis: str
+    recommendations: list[str]
