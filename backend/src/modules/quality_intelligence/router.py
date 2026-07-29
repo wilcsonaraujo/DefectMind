@@ -4,6 +4,9 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Query
 from neo4j import Session
 
+from backend.src.modules.quality_intelligence.coverage_analysis_service import (
+    CoverageAnalysisService,
+)
 from backend.src.modules.quality_intelligence.hotspots_service import HotspotsService
 
 logger = logging.getLogger(__name__)
@@ -17,6 +20,7 @@ from backend.src.modules.quality_intelligence.health_score_service import (
     HealthScoreService,
 )
 from backend.src.modules.quality_intelligence.schemas import (
+    CoverageAnalysisResponse,
     HealthScoreRequest,
     HealthScoreResponse,
     HotspotsResponse,
@@ -83,4 +87,26 @@ def generate_hotspots(
         logger.exception("Unexpected error generating hotspots")
         raise HTTPException(
             status_code=500, detail="Error occurred while generating hotspots."
+        )
+
+
+@router.get(
+    "/coverage-analysis",
+    response_model=CoverageAnalysisResponse,
+    summary="Get the coverage gap of the system",
+)
+def generate_coverage(
+    neo4j: Neo4jSession, provider: Provider, current_user: CurrentUser
+):
+    service = CoverageAnalysisService(neo4j_session=neo4j, ai_provider=provider)
+
+    try:
+        return service.get_coverage_analysis()
+    except ValueError as e:
+        logger.error(f"Failed to parse AI response for Coverage Gap: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+    except Exception:
+        logger.exception("Unexpected error generating coverage gap.")
+        raise HTTPException(
+            status_code=500, detail="Error occurred while generating coverage gap."
         )

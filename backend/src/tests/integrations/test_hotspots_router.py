@@ -1,13 +1,13 @@
 import os
 
+from backend.src.core.dependencies import get_current_user
+
 os.environ.setdefault("GEMINI_API_KEY", "fake-key-for-tests")
 
 from unittest.mock import MagicMock, patch
 
-import pytest
 from starlette.testclient import TestClient
 
-from backend.src.core.ai.provider_factory import get_ai_provider
 from backend.src.main import app
 from backend.src.modules.quality_intelligence.schemas import (
     HotspotItem,
@@ -15,14 +15,8 @@ from backend.src.modules.quality_intelligence.schemas import (
 )
 
 
-@pytest.fixture(autouse=True)
-def mock_ai_provider():
-    """Automatic AI provider mock for all tests."""
-    mock_provider = MagicMock()
-    mock_provider.generate_json.return_value = {"result": "mocked"}
-    app.dependency_overrides[get_ai_provider] = lambda: mock_provider
-    yield mock_provider
-    app.dependency_overrides.pop(get_ai_provider, None)
+def mock_user():
+    return {"username": "Admin", "password": "admin@123"}
 
 
 MOCK_HOTSPOTS = HotspotsResponse(
@@ -53,26 +47,25 @@ def test_generate_requires_auth():
 
 def test_generate_success():
     client = TestClient(app)
-
     with patch(
         "backend.src.modules.quality_intelligence.router.HotspotsService"
     ) as MockService:
         mock_instance = MagicMock()
         mock_instance.get_hotspots.return_value = MOCK_HOTSPOTS
         MockService.return_value = mock_instance
+        app.dependency_overrides[get_current_user] = mock_user
 
         response = client.get(
             "/api/v1/quality-intelligence/hotspots",
             headers={"Authorization": "Bearer valid-token"},
         )
 
-    assert response.status_code in (200, 401)
-    if response.status_code == 200:
-        data = response.json()
-        assert "hotspots" in data
-        assert "total" in data
-        assert "ai_analysis" in data
-        assert "recommendations" in data
+    assert response.status_code == 200
+    data = response.json()
+    assert "hotspots" in data
+    assert "total" in data
+    assert "ai_analysis" in data
+    assert "recommendations" in data
     app.dependency_overrides.clear()
 
 
@@ -87,22 +80,17 @@ def test_generate_success_empty():
             hotspots=[], total=0, ai_analysis="", recommendations=[]
         )
         MockService.return_value = mock_instance
+        app.dependency_overrides[get_current_user] = mock_user
 
-        with patch(
-            "backend.src.modules.quality_intelligence.router.generate_hotspots"
-        ) as MockFactory:
-            MockFactory.return_value = MagicMock()
+        response = client.get(
+            "/api/v1/quality-intelligence/hotspots",
+            headers={"Authorization": "Bearer valid-token"},
+        )
 
-            response = client.get(
-                "/api/v1/quality-intelligence/hotspots",
-                headers={"Authorization": "Bearer valid-token"},
-            )
-
-    assert response.status_code in (200, 401)
-    if response.status_code == 200:
-        data = response.json()
-        assert "hotspots" in data
-        assert "total" in data
-        assert "ai_analysis" in data
-        assert "recommendations" in data
+    assert response.status_code == 200
+    data = response.json()
+    assert "hotspots" in data
+    assert "total" in data
+    assert "ai_analysis" in data
+    assert "recommendations" in data
     app.dependency_overrides.clear()
