@@ -22,8 +22,10 @@ class ReleaseReadinessService(QualityIntelligenceBaseService):
             RETURN s.id AS found_id
             """
 
-        records = self.neo4j_session.run(query)
-        return [list(story_id=record["found_id"]) for record in records]
+        records = self.neo4j_session.run(query, story_ids=story_ids)
+        found_ids = [record["found_id"] for record in records]
+
+        return list(set(story_ids) - set(found_ids))
 
     def _get_story_coverage(self, story_id) -> float:
         """Calculates the coverage score based solely on stories."""
@@ -56,11 +58,9 @@ class ReleaseReadinessService(QualityIntelligenceBaseService):
         RETURN
             COUNT(CASE WHEN connected:BugReport THEN 1 END) AS bug_report_count,
             COUNT(CASE WHEN connected:Incident THEN 1 END) AS incident_count,
-            COUNT(CASE WHEN connected:PostMortem THEN 1 END) AS postmortem_count,
-            COUNT(CASE WHEN connected:Requirement THEN 1 END) AS requirement_count,
-            COUNT(CASE WHEN connected:TestCase THEN 1 END) AS test_case_count
+            COUNT(CASE WHEN connected:PostMortem THEN 1 END) AS postmortem_count
         """
-        result = self.db_session.run(query, story_id=story_id).single()
+        result = self.neo4j_session.run(query, story_id=story_id).single()
 
         if not result:
             return None
@@ -89,7 +89,7 @@ class ReleaseReadinessService(QualityIntelligenceBaseService):
             RETURN COUNT(DISTINCT i) AS incidents_without_postmortem
         """
 
-        result = self.db_session.run(query, story_id=story_id).single()
+        result = self.neo4j_session.run(query, story_id=story_id).single()
 
         if not result:
             return 0
