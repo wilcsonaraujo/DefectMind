@@ -82,3 +82,29 @@ class KnowledgeGapsResponse(BaseModel):
     gaps: list[KnowledgeGap]
     ai_analysis: str
     recommendations: list[str]
+
+
+class VerdictEnum(str, Enum):
+    READY = "READY"
+    NEEDS_ATTENTION = "NEEDS_ATTENTION"
+    NOT_READY = "NOT_READY"
+
+
+class ReleaseReadinessRequest(BaseModel):
+    story_ids: list[str] = Field(min_length=1)
+
+
+class StoryReadiness(BaseModel):
+    story_id: str
+    title: str
+    verdict: VerdictEnum
+    incidents_count: int = Field(description="Incidents without postmortem count")
+    coverage_score: float
+    health_risk: RiskLevelEnum
+    blockers: list[str]
+
+
+class ReleaseReadinessResponse(BaseModel):
+    results: list[StoryReadiness]
+    ai_analysis: str
+    recommendations: list[str]

@@ -11,6 +11,10 @@ from backend.src.modules.quality_intelligence.hotspots_service import HotspotsSe
 from backend.src.modules.quality_intelligence.knowledge_gaps_service import (
     KnowledgeGapsService,
 )
+from backend.src.modules.quality_intelligence.release_readiness_service import (
+    ReleaseReadinessService,
+    StoryNotFoundError,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +32,8 @@ from backend.src.modules.quality_intelligence.schemas import (
     HealthScoreResponse,
     HotspotsResponse,
     KnowledgeGapsResponse,
+    ReleaseReadinessRequest,
+    ReleaseReadinessResponse,
 )
 
 router = APIRouter(dependencies=[Depends(get_current_user)])
@@ -135,4 +141,32 @@ def generate_knowledge_gap(
         logger.exception("Unexpected error generating knowledge gap.")
         raise HTTPException(
             status_code=500, detail="Error occurred while generating knowledge gap."
+        )
+
+
+@router.post(
+    "/release-readiness",
+    response_model=ReleaseReadinessResponse,
+    summary="Get the release readiness of the system",
+)
+def generate_release_readiness(
+    generate: ReleaseReadinessRequest,
+    neo4j: Neo4jSession,
+    provider: Provider,
+    current_user: CurrentUser,
+):
+    service = ReleaseReadinessService(neo4j_session=neo4j, ai_provider=provider)
+
+    try:
+        return service.get_release_readiness(generate.story_ids)
+    except StoryNotFoundError as e:
+        logger.error(f"Story(ies) not found: {e}")
+        raise HTTPException(status_code=404, detail=str(e))
+    except ValueError as e:
+        logger.error(f"Failed to parse AI response for Release Readiness: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+    except Exception:
+        logger.exception("Unexpected error generating Release Readiness.")
+        raise HTTPException(
+            status_code=500, detail="Error occurred while generating Release Readiness."
         )

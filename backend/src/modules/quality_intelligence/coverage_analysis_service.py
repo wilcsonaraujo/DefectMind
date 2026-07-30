@@ -25,7 +25,7 @@ class CoverageAnalysisService(QualityIntelligenceBaseService):
             'Requirement' AS label,
             'NO_TEST_CASE' AS gap_type
         """
-        records = self.db_session.run(query)
+        records = self.neo4j_session.run(query)
 
         return [
             CoverageGap(
@@ -48,7 +48,7 @@ class CoverageAnalysisService(QualityIntelligenceBaseService):
             'Story' AS label,
             'NO_FUNCTIONAL_COVERAGE' AS gap_type
         """
-        records = self.db_session.run(query)
+        records = self.neo4j_session.run(query)
 
         return [
             CoverageGap(
@@ -71,7 +71,7 @@ class CoverageAnalysisService(QualityIntelligenceBaseService):
             'TestCase' AS label,
             'ORPHAN_TEST_CASE' AS gap_type
         """
-        records = self.db_session.run(query)
+        records = self.neo4j_session.run(query)
 
         return [
             CoverageGap(
@@ -94,7 +94,7 @@ class CoverageAnalysisService(QualityIntelligenceBaseService):
             COUNT(CASE WHEN is_uncovered THEN 1 END) AS uncovered_requirements
         """
 
-        result = self.db_session.run(query)
+        result = self.neo4j_session.run(query)
         record = result.single()
 
         if not record:

@@ -26,7 +26,7 @@ class KnowledgeGapsService(QualityIntelligenceBaseService):
             'BUG_WITHOUT_TEST_CASE' AS gap_type
         """
 
-        records = self.db_session.run(query)
+        records = self.neo4j_session.run(query)
         return [
             KnowledgeGap(
                 node_id=record["node_id"],
@@ -49,7 +49,7 @@ class KnowledgeGapsService(QualityIntelligenceBaseService):
             'INCIDENT_WITHOUT_POSTMORTEM' AS gap_type
         """
 
-        records = self.db_session.run(query)
+        records = self.neo4j_session.run(query)
         return [
             KnowledgeGap(
                 node_id=record["node_id"],
@@ -72,7 +72,7 @@ class KnowledgeGapsService(QualityIntelligenceBaseService):
             'REQUIREMENT_WITHOUT_STORY' AS gap_type
         """
 
-        records = self.db_session.run(query)
+        records = self.neo4j_session.run(query)
         return [
             KnowledgeGap(
                 node_id=record["node_id"],
@@ -95,7 +95,7 @@ class KnowledgeGapsService(QualityIntelligenceBaseService):
             'STORY_WITHOUT_REQUIREMENT' AS gap_type
         """
 
-        records = self.db_session.run(query)
+        records = self.neo4j_session.run(query)
         return [
             KnowledgeGap(
                 node_id=record["node_id"],

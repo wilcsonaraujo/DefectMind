@@ -43,7 +43,7 @@ class HealthScoreService(QualityIntelligenceBaseService):
             "PostMortem": 0,
         }
 
-        results = list(self.db_session.run(query, node_id=node_id))
+        results = list(self.neo4j_session.run(query, node_id=node_id))
         if not results:
             return None
 
