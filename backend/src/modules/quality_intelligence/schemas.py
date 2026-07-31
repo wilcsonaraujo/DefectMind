@@ -108,3 +108,11 @@ class ReleaseReadinessResponse(BaseModel):
     results: list[StoryReadiness]
     ai_analysis: str
     recommendations: list[str]
+
+class RiskReportRequest(BaseModel):
+    node_id: str
+
+class RiskReportResponse(BaseModel):
+    risks: list[EvidenceItem]
+    ai_analysis: str
+    recommendations: list[str]
