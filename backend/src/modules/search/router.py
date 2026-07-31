@@ -42,10 +42,19 @@ def semanticSearchService(
         neo4j_session=neo4j, embedding_service=embedding_service
     )
 
-    result = service._search(
-        request.request_text, request.filter, request.limit_responses
-    )
-    return SemanticSearchResponse(results=result, total=len(result))
+    try:
+        result = service._search(
+            request.request_text, request.filter, request.limit_responses
+        )
+        return SemanticSearchResponse(results=result, total=len(result))
+    except Exception:
+        logger.exception(
+            f"Unexpected error performing semantic search for text: {request.request_text!r}"
+        )
+        raise HTTPException(
+            status_code=500,
+            detail="Error occurred while performing semantic search.",
+        )
 
 
 @router.get(
@@ -86,5 +95,12 @@ def graph_stats_service(
     current_user: CurrentUser,
 ):
     service = GraphService(neo4j_session=neo4j)
-    result = service._get_graph_stats()
-    return StatsResponse(**result)
+
+    try:
+        result = service._get_graph_stats()
+        return StatsResponse(**result)
+    except Exception:
+        logger.exception("Unexpected error generating graph statistics.")
+        raise HTTPException(
+            status_code=500, detail="Error occurred while generating graph statistics."
+        )
