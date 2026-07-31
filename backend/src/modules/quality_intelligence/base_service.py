@@ -6,8 +6,8 @@ logger = logging.getLogger(__name__)
 
 
 class QualityIntelligenceBaseService:
-    def __init__(self, db_session, ai_provider):
-        self.db_session = db_session
+    def __init__(self, neo4j_session, ai_provider):
+        self.neo4j_session = neo4j_session
         self.ai_provider = ai_provider
 
     def _get_label(self, node):

@@ -52,7 +52,7 @@ class HotspotsService(QualityIntelligenceBaseService):
         ORDER BY score DESC, critical_bug_count DESC
         LIMIT $limit
         """
-        return list(self.db_session.run(query, limit=limit))
+        return list(self.neo4j_session.run(query, limit=limit))
 
     def _build_hotspots_context(self, hotspots):
         """
