@@ -107,7 +107,7 @@ class RiskReportService(QualityIntelligenceBaseService):
         try:
             ai_response = self._call_llm(prompt)
             return RiskReportResponse(
-                risk=ai_response.get("risks", []),
+                risks=ai_response.get("risks", []),
                 ai_analysis=ai_response.get("ai_analysis", ""),
                 recommendations=ai_response.get("recommendations", []),
             )
@@ -132,7 +132,7 @@ class RiskReportService(QualityIntelligenceBaseService):
 
         if not semantic_risk_list and not evidence_risks_list:
             return RiskReportResponse(
-                risk=[], ai_analysis="Nenhum risco identificado.", recommendations=[]
+                risks=[], ai_analysis="Nenhum risco identificado.", recommendations=[]
             )
 
         context = self._build_risk_report_context(

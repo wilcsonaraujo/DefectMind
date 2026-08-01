@@ -208,6 +208,8 @@ def generate_risk_report(
         if response is None:
             raise HTTPException(status_code=404, detail="Node not found.")
         return response
+    except HTTPException:
+            raise
     except ValueError as e:
         logger.error(f"Failed to parse AI response for node {generate.node_id}: {e}")
         raise HTTPException(status_code=500, detail=str(e))
