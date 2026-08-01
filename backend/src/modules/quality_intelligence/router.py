@@ -15,12 +15,19 @@ from backend.src.modules.quality_intelligence.release_readiness_service import (
     ReleaseReadinessService,
     StoryNotFoundError,
 )
+from backend.src.modules.quality_intelligence.risk_report_service import (
+    RiskReportService,
+)
+from backend.src.modules.search.semantic_search_service import SemanticSearchService
 
 logger = logging.getLogger(__name__)
 
 from backend.src.core.ai.provider import AIProvider
 from backend.src.core.ai.provider_factory import get_ai_provider
-from backend.src.core.dependencies import get_current_user
+from backend.src.core.dependencies import get_current_user, get_embedding_service
+from backend.src.core.embeddings.embedding_service import (
+    EmbeddingService as EmbeddingServiceType,
+)
 from backend.src.core.neo4j_db import get_required_neo4j_session
 from backend.src.models.user import User
 from backend.src.modules.quality_intelligence.health_score_service import (
@@ -34,6 +41,8 @@ from backend.src.modules.quality_intelligence.schemas import (
     KnowledgeGapsResponse,
     ReleaseReadinessRequest,
     ReleaseReadinessResponse,
+    RiskReportRequest,
+    RiskReportResponse,
 )
 
 router = APIRouter(dependencies=[Depends(get_current_user)])
@@ -41,6 +50,7 @@ router = APIRouter(dependencies=[Depends(get_current_user)])
 Neo4jSession = Annotated[Session, Depends(get_required_neo4j_session)]
 CurrentUser = Annotated[User, Depends(get_current_user)]
 Provider = Annotated[AIProvider, Depends(get_ai_provider)]
+EmbeddingService = Annotated[EmbeddingServiceType, Depends(get_embedding_service)]
 
 
 @router.post(
@@ -169,4 +179,44 @@ def generate_release_readiness(
         logger.exception("Unexpected error generating Release Readiness.")
         raise HTTPException(
             status_code=500, detail="Error occurred while generating Release Readiness."
+        )
+
+
+@router.post(
+    "/risk-report",
+    response_model=RiskReportResponse,
+    summary="Get the risk report of the system",
+)
+def generate_risk_report(
+    generate: RiskReportRequest,
+    embedding_service: EmbeddingService,
+    neo4j: Neo4jSession,
+    provider: Provider,
+    current_user: CurrentUser,
+):
+    semantic_service = SemanticSearchService(
+        neo4j_session=neo4j, embedding_service=embedding_service
+    )
+    risk_report_service = RiskReportService(
+        neo4j_session=neo4j,
+        ai_provider=provider,
+        semantic_search_service=semantic_service,
+    )
+
+    try:
+        response = risk_report_service.get_risk_report(generate.node_id)
+        if response is None:
+            raise HTTPException(status_code=404, detail="Node not found.")
+        return response
+    except HTTPException:
+            raise
+    except ValueError as e:
+        logger.error(f"Failed to parse AI response for node {generate.node_id}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+    except Exception:
+        logger.exception(
+            f"Unexpected error generating risk report for node {generate.node_id}"
+        )
+        raise HTTPException(
+            status_code=500, detail="Error occurred while generating risk report."
         )
