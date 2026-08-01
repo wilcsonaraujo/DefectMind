@@ -34,13 +34,13 @@ class RiskReportService(QualityIntelligenceBaseService):
             return []
 
         return [
-            dict(
-                node_id=result["node_id"],
-                title=result["title"],
-                label=result["label"],
-                severity=result["severity"],
-                impact=result["impact"],
-            )
+            {
+                "node_id": result["node_id"],
+                "title": result["title"],
+                "label": result["label"],
+                "severity": result["severity"],
+                "impact": result["impact"],
+            }
             for result in results
             if result["node_id"] is not None
         ]
@@ -90,12 +90,12 @@ class RiskReportService(QualityIntelligenceBaseService):
         """Build a prompt string from a AI to synthesize a risk report."""
         prompt_parts = [
             f"context: {context}",
-            "Acima está uma lista de evidências de risco para um artefato específico, "
-            "encontradas de duas formas: [Estrutural] (conexões diretas no grafo com o artefato) "
+            "Acima está uma lista de evidências de risco para um artefato específico, ",
+            "encontradas de duas formas: [Estrutural] (conexões diretas no grafo com o artefato) ",
             "e [Semântico] (busca por artefatos com título parecido e histórico de problemas).",
             "Analise essas evidências e responda estritamente em JSON com:",
-            "- risks (lista de objetos): cada um com 'artifact' (nome/título do artefato citado), "
-            "'type' (indique se a evidência é 'estrutural' ou 'semântica', citando a fonte), "
+            "- risks (lista de objetos): cada um com 'artifact' (nome/título do artefato citado), ",
+            "'type' (indique se a evidência é 'estrutural' ou 'semântica', citando a fonte), ",
             "e 'justification' (por que esse artefato representa um risco pro artefato analisado).",
             "- ai_analysis (texto): um resumo do nível de risco geral do artefato, baseado no conjunto de evidências.",
             "- recommendations (lista de strings): ações práticas para mitigar os riscos identificados.",
