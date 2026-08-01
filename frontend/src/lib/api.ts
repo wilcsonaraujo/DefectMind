@@ -384,3 +384,221 @@ export async function generateDataset(
   }
   return response.json();
 }
+
+// ─── Quality Intelligence ───────────────────────────────────────────────────
+
+const QI_BASE = `${API_BASE}/api/v1/quality-intelligence`;
+
+export interface EvidenceItem {
+  artifact: string;
+  type: string;
+  justification: string;
+}
+
+export type RiskLevel = "LOW" | "MEDIUM" | "HIGH";
+
+// Health Score
+export interface HealthScoreResponse {
+  evidence: EvidenceItem[];
+  ai_analysis: string;
+  recommendations: string[];
+  risk_classification: RiskLevel;
+}
+
+export async function getHealthScore(nodeId: string): Promise<HealthScoreResponse> {
+  const response = await fetch(`${QI_BASE}/health-score`, {
+    method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify({ node_id: nodeId }),
+  });
+  if (response.status === 401) handleUnauthorized();
+  if (!response.ok) {
+    const detail = await response.text().catch(() => response.statusText);
+    throw new Error(`Erro ao calcular health score (${response.status}): ${detail}`);
+  }
+  return response.json();
+}
+
+// Hotspots
+export interface HotspotItem {
+  node_id: string;
+  title: string;
+  label: string;
+  bug_count: number;
+  critical_bug_count: number;
+  incident_count: number;
+  postmortem_count: number;
+  score: number;
+}
+
+export interface HotspotsResponse {
+  hotspots: HotspotItem[];
+  total: number;
+  ai_analysis: string;
+  recommendations: string[];
+}
+
+export async function getHotspots(limit = 10): Promise<HotspotsResponse> {
+  const response = await fetch(`${QI_BASE}/hotspots?limit=${limit}`, {
+    method: "GET",
+    headers: authHeaders(),
+  });
+  if (response.status === 401) handleUnauthorized();
+  if (!response.ok) {
+    const detail = await response.text().catch(() => response.statusText);
+    throw new Error(`Erro ao carregar hotspots (${response.status}): ${detail}`);
+  }
+  return response.json();
+}
+
+// Coverage Analysis
+export type GapType = "NO_TEST_CASE" | "NO_FUNCTIONAL_COVERAGE" | "ORPHAN_TEST_CASE";
+
+export interface CoverageGap {
+  node_id: string;
+  title: string;
+  label: string;
+  gap_type: GapType;
+}
+
+export interface CoverageAnalysisResponse {
+  coverage_score: number;
+  gaps: CoverageGap[];
+  ai_analysis: string;
+  recommendations: string[];
+}
+
+export async function getCoverageAnalysis(): Promise<CoverageAnalysisResponse> {
+  const response = await fetch(`${QI_BASE}/coverage-analysis`, {
+    method: "GET",
+    headers: authHeaders(),
+  });
+  if (response.status === 401) handleUnauthorized();
+  if (!response.ok) {
+    const detail = await response.text().catch(() => response.statusText);
+    throw new Error(`Erro ao carregar análise de cobertura (${response.status}): ${detail}`);
+  }
+  return response.json();
+}
+
+// Knowledge Gaps
+export type KnowledgeGapType =
+  | "BUG_WITHOUT_TEST_CASE"
+  | "INCIDENT_WITHOUT_POSTMORTEM"
+  | "REQUIREMENT_WITHOUT_STORY"
+  | "STORY_WITHOUT_REQUIREMENT";
+
+export interface KnowledgeGap {
+  node_id: string;
+  title: string;
+  label: string;
+  gap_type: KnowledgeGapType;
+}
+
+export interface KnowledgeGapsResponse {
+  gaps: KnowledgeGap[];
+  ai_analysis: string;
+  recommendations: string[];
+}
+
+export async function getKnowledgeGaps(): Promise<KnowledgeGapsResponse> {
+  const response = await fetch(`${QI_BASE}/knowledge-gaps`, {
+    method: "GET",
+    headers: authHeaders(),
+  });
+  if (response.status === 401) handleUnauthorized();
+  if (!response.ok) {
+    const detail = await response.text().catch(() => response.statusText);
+    throw new Error(`Erro ao carregar lacunas de conhecimento (${response.status}): ${detail}`);
+  }
+  return response.json();
+}
+
+// Release Readiness
+export type VerdictType = "READY" | "NEEDS_ATTENTION" | "NOT_READY";
+
+export interface StoryReadiness {
+  story_id: string;
+  title: string;
+  verdict: VerdictType;
+  incidents_count: number;
+  coverage_score: number;
+  health_risk: RiskLevel;
+  blockers: string[];
+}
+
+export interface ReleaseReadinessResponse {
+  results: StoryReadiness[];
+  ai_analysis: string;
+  recommendations: string[];
+}
+
+export async function getReleaseReadiness(
+  storyIds: string[],
+): Promise<ReleaseReadinessResponse> {
+  const response = await fetch(`${QI_BASE}/release-readiness`, {
+    method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify({ story_ids: storyIds }),
+  });
+  if (response.status === 401) handleUnauthorized();
+  if (!response.ok) {
+    const detail = await response.text().catch(() => response.statusText);
+    throw new Error(`Erro ao avaliar prontidão de release (${response.status}): ${detail}`);
+  }
+  return response.json();
+}
+
+// Risk Report
+export interface RiskReportResponse {
+  risks: EvidenceItem[];
+  ai_analysis: string;
+  recommendations: string[];
+}
+
+export async function getRiskReport(nodeId: string): Promise<RiskReportResponse> {
+  const response = await fetch(`${QI_BASE}/risk-report`, {
+    method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify({ node_id: nodeId }),
+  });
+  if (response.status === 401) handleUnauthorized();
+  if (!response.ok) {
+    const detail = await response.text().catch(() => response.statusText);
+    throw new Error(`Erro ao gerar relatório de risco (${response.status}): ${detail}`);
+  }
+  return response.json();
+}
+
+// Recommendations
+export type RecommendationType =
+  | "EXECUTE_REGRESSION"
+  | "INCREASE_COVERAGE"
+  | "CREATE_TEST_CASE"
+  | "REVIEW_REQUIREMENT"
+  | "PRIORITIZE_INTEGRATION";
+
+export interface RecommendationItem {
+  type: RecommendationType;
+  priority: "Low" | "Medium" | "High";
+  justification: string;
+}
+
+export interface RecommendationsResponse {
+  recommendations: RecommendationItem[];
+  ai_analysis: string;
+}
+
+export async function getRecommendations(nodeId: string): Promise<RecommendationsResponse> {
+  const response = await fetch(`${QI_BASE}/recommendations`, {
+    method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify({ node_id: nodeId }),
+  });
+  if (response.status === 401) handleUnauthorized();
+  if (!response.ok) {
+    const detail = await response.text().catch(() => response.statusText);
+    throw new Error(`Erro ao gerar recomendações (${response.status}): ${detail}`);
+  }
+  return response.json();
+}

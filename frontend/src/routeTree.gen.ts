@@ -13,6 +13,7 @@ import { Route as UsersRouteImport } from './routes/users'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SearchRouteImport } from './routes/search'
+import { Route as QualityIntelligenceRouteImport } from './routes/quality-intelligence'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ImpactRouteImport } from './routes/impact'
 import { Route as GraphRouteImport } from './routes/graph'
@@ -39,6 +40,11 @@ const SettingsRoute = SettingsRouteImport.update({
 const SearchRoute = SearchRouteImport.update({
   id: '/search',
   path: '/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QualityIntelligenceRoute = QualityIntelligenceRouteImport.update({
+  id: '/quality-intelligence',
+  path: '/quality-intelligence',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -85,6 +91,7 @@ export interface FileRoutesByFullPath {
   '/graph': typeof GraphRoute
   '/impact': typeof ImpactRoute
   '/login': typeof LoginRoute
+  '/quality-intelligence': typeof QualityIntelligenceRoute
   '/search': typeof SearchRoute
   '/settings': typeof SettingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -98,6 +105,7 @@ export interface FileRoutesByTo {
   '/graph': typeof GraphRoute
   '/impact': typeof ImpactRoute
   '/login': typeof LoginRoute
+  '/quality-intelligence': typeof QualityIntelligenceRoute
   '/search': typeof SearchRoute
   '/settings': typeof SettingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -112,6 +120,7 @@ export interface FileRoutesById {
   '/graph': typeof GraphRoute
   '/impact': typeof ImpactRoute
   '/login': typeof LoginRoute
+  '/quality-intelligence': typeof QualityIntelligenceRoute
   '/search': typeof SearchRoute
   '/settings': typeof SettingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -127,6 +136,7 @@ export interface FileRouteTypes {
     | '/graph'
     | '/impact'
     | '/login'
+    | '/quality-intelligence'
     | '/search'
     | '/settings'
     | '/sitemap.xml'
@@ -140,6 +150,7 @@ export interface FileRouteTypes {
     | '/graph'
     | '/impact'
     | '/login'
+    | '/quality-intelligence'
     | '/search'
     | '/settings'
     | '/sitemap.xml'
@@ -153,6 +164,7 @@ export interface FileRouteTypes {
     | '/graph'
     | '/impact'
     | '/login'
+    | '/quality-intelligence'
     | '/search'
     | '/settings'
     | '/sitemap.xml'
@@ -167,6 +179,7 @@ export interface RootRouteChildren {
   GraphRoute: typeof GraphRoute
   ImpactRoute: typeof ImpactRoute
   LoginRoute: typeof LoginRoute
+  QualityIntelligenceRoute: typeof QualityIntelligenceRoute
   SearchRoute: typeof SearchRoute
   SettingsRoute: typeof SettingsRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
@@ -208,6 +221,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/quality-intelligence': {
+      id: '/quality-intelligence'
+      path: '/quality-intelligence'
+      fullPath: '/quality-intelligence'
+      preLoaderRoute: typeof QualityIntelligenceRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/impact': {
@@ -263,6 +283,7 @@ const rootRouteChildren: RootRouteChildren = {
   GraphRoute: GraphRoute,
   ImpactRoute: ImpactRoute,
   LoginRoute: LoginRoute,
+  QualityIntelligenceRoute: QualityIntelligenceRoute,
   SearchRoute: SearchRoute,
   SettingsRoute: SettingsRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
