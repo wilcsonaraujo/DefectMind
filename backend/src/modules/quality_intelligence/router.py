@@ -11,6 +11,9 @@ from backend.src.modules.quality_intelligence.hotspots_service import HotspotsSe
 from backend.src.modules.quality_intelligence.knowledge_gaps_service import (
     KnowledgeGapsService,
 )
+from backend.src.modules.quality_intelligence.recommendations_service import (
+    RecommendationsService,
+)
 from backend.src.modules.quality_intelligence.release_readiness_service import (
     ReleaseReadinessService,
     StoryNotFoundError,
@@ -39,6 +42,8 @@ from backend.src.modules.quality_intelligence.schemas import (
     HealthScoreResponse,
     HotspotsResponse,
     KnowledgeGapsResponse,
+    RecommendationsRequest,
+    RecommendationsResponse,
     ReleaseReadinessRequest,
     ReleaseReadinessResponse,
     RiskReportRequest,
@@ -209,7 +214,7 @@ def generate_risk_report(
             raise HTTPException(status_code=404, detail="Node not found.")
         return response
     except HTTPException:
-            raise
+        raise
     except ValueError as e:
         logger.error(f"Failed to parse AI response for node {generate.node_id}: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -219,4 +224,41 @@ def generate_risk_report(
         )
         raise HTTPException(
             status_code=500, detail="Error occurred while generating risk report."
+        )
+
+
+@router.post(
+    "/recommendations",
+    response_model=RecommendationsResponse,
+    summary="Get the typed recommendations of the system",
+)
+def generate_recommendations(
+    generate: RecommendationsRequest,
+    neo4j: Neo4jSession,
+    provider: Provider,
+    current_user: CurrentUser,
+):
+    health_score_service = HealthScoreService(neo4j_session=neo4j, ai_provider=provider)
+    recommendations_service = RecommendationsService(
+        neo4j_session=neo4j,
+        ai_provider=provider,
+        health_score_service=health_score_service,
+    )
+
+    try:
+        response = recommendations_service.get_recommendations(generate.node_id)
+        if response is None:
+            raise HTTPException(status_code=404, detail="Node not found.")
+        return response
+    except HTTPException:
+        raise
+    except ValueError as e:
+        logger.error(f"Failed to parse AI response for node {generate.node_id}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+    except Exception:
+        logger.exception(
+            f"Unexpected error generating recommendations for node {generate.node_id}"
+        )
+        raise HTTPException(
+            status_code=500, detail="Error occurred while generating recommendations."
         )
