@@ -2,6 +2,8 @@ from enum import Enum
 
 from pydantic import BaseModel, Field
 
+from backend.src.modules.artifacts.schemas import PriorityEnum
+
 
 class EvidenceItem(BaseModel):
     artifact: str
@@ -116,3 +118,22 @@ class RiskReportResponse(BaseModel):
     risks: list[EvidenceItem]
     ai_analysis: str
     recommendations: list[str]
+
+class RecommendationTypeEnum(str, Enum):
+    EXECUTE_REGRESSION="EXECUTE_REGRESSION"
+    INCREASE_COVERAGE="INCREASE_COVERAGE"
+    CREATE_TEST_CASE="CREATE_TEST_CASE"
+    REVIEW_REQUIREMENT="REVIEW_REQUIREMENT"
+    PRIORITIZE_INTEGRATION="PRIORITIZE_INTEGRATION"
+
+class RecommendationItem(BaseModel):
+    type: RecommendationTypeEnum
+    priority: PriorityEnum
+    justification: str = Field(min_length=1)
+
+class RecommendationsRequest(BaseModel):
+    node_id: str
+
+class RecommendationsResponse(BaseModel):
+    recommendations: list[RecommendationItem]
+    ai_analysis: str
