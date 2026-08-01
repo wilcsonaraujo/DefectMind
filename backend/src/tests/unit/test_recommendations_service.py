@@ -7,7 +7,6 @@ from backend.src.modules.quality_intelligence.recommendations_service import (
     RecommendationsService,
 )
 from backend.src.modules.quality_intelligence.schemas import RecommendationItem
-from backend.src.tests.unit.conftest import make_neo4j_result
 
 
 @pytest.fixture
