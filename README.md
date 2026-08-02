@@ -52,8 +52,6 @@ The artifacts that populate the graph are themselves **AI-generated**: Data Forg
 
 ## Screenshots
 
-> Add the screenshots to `docs/screenshots/` using the file names below — the links are already in place, you just need the files to exist.
-
 | Dashboard | Artifacts |
 | :---: | :---: |
 | ![Dashboard](docs/screenshots/dashboard.png) | ![Artifacts](docs/screenshots/artifacts.png) |
