@@ -14,6 +14,7 @@ import {
   LogOut,
   Languages,
   Bell,
+  Brain,
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -34,6 +35,7 @@ const navItems = [
   { key: "nav.search",     icon: Search,          to: "/search"     },
   { key: "nav.graph",      icon: Share2,          to: "/graph"      },
   { key: "nav.impact",     icon: GitCompareArrows,to: "/impact"     },
+  { key: "nav.qualityIntelligence", icon: Brain,  to: "/quality-intelligence" },
   { key: "nav.dataForge",  icon: FlaskConical,    to: "/data-forge" },
   { key: "nav.users",      icon: Users,           to: "/users"      },
 ] as const;
