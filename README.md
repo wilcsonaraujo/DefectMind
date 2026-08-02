@@ -1,130 +1,130 @@
 # DefectMind
 
-**Inteligência para QA, orientada por grafos e IA.**
+**AI-powered, graph-driven intelligence for QA.**
 
-DefectMind é uma plataforma de QA intelligence que modela artefatos de qualidade (Stories, Requirements, TestCases, BugReports, Incidents e PostMortems) como um grafo de conhecimento no Neo4j, com busca semântica por embeddings e um módulo de análises interpretadas por LLM — Health Score, Quality Hotspots, Test Coverage Analysis, Knowledge Gaps, Release Readiness, Quality Risk Report e Recommendations Engine.
+DefectMind is a QA intelligence platform that models quality artifacts (Stories, Requirements, TestCases, BugReports, Incidents and PostMortems) as a knowledge graph in Neo4j, with semantic search powered by embeddings and an LLM-interpreted analytics module — Health Score, Quality Hotspots, Test Coverage Analysis, Knowledge Gaps, Release Readiness, Quality Risk Report and Recommendations Engine.
 
-Os próprios artefatos que povoam o grafo são **gerados por IA**: o Data Forge usa um LLM pra inventar Stories, Requirements, TestCases, BugReports, Incidents e PostMortems coerentes entre si e já conectados pelas relações corretas, criando rapidamente um dataset realista pra explorar todas as funcionalidades da plataforma.
+The artifacts that populate the graph are themselves **AI-generated**: Data Forge uses an LLM to invent Stories, Requirements, TestCases, BugReports, Incidents and PostMortems that are coherent with each other and already connected through the correct relationships, quickly producing a realistic dataset to explore every feature of the platform.
 
-![Dashboard do DefectMind](docs/screenshots/dashboard.png)
+![DefectMind Dashboard](docs/screenshots/dashboard.png)
 
 ---
 
-## Índice
+## Table of Contents
 
-- [Funcionalidades](#funcionalidades)
+- [Features](#features)
 - [Screenshots](#screenshots)
-- [Stack técnica](#stack-técnica)
-- [Arquitetura](#arquitetura)
-- [Como rodar](#como-rodar)
-  - [Via Docker Compose](#via-docker-compose-recomendado)
-  - [Backend local](#backend-local)
-  - [Frontend local](#frontend-local)
-- [Variáveis de ambiente](#variáveis-de-ambiente)
-- [Testes e qualidade](#testes-e-qualidade)
-- [Documentação da API](#documentação-da-api)
-- [Estrutura do projeto](#estrutura-do-projeto)
-- [Licença](#licença)
+- [Tech Stack](#tech-stack)
+- [Architecture](#architecture)
+- [Getting Started](#getting-started)
+  - [Via Docker Compose](#via-docker-compose-recommended)
+  - [Backend locally](#backend-locally)
+  - [Frontend locally](#frontend-locally)
+- [Environment Variables](#environment-variables)
+- [Tests and Quality](#tests-and-quality)
+- [API Documentation](#api-documentation)
+- [Project Structure](#project-structure)
+- [License](#license)
 
 ---
 
-## Funcionalidades
+## Features
 
-**Grafo de artefatos de QA** — CRUD completo para Story, Requirement, TestCase, BugReport, Incident e PostMortem, com relacionamentos explícitos entre eles (`HAS_REQUIREMENT`, `COVERED_BY`, `FOUND`, `CAUSED`, `ROOT_CAUSE`).
+**QA artifact graph** — full CRUD for Story, Requirement, TestCase, BugReport, Incident and PostMortem, with explicit relationships between them (`HAS_REQUIREMENT`, `COVERED_BY`, `FOUND`, `CAUSED`, `ROOT_CAUSE`).
 
-**Busca semântica** — busca por significado (não só por palavra-chave) usando embeddings (`sentence-transformers`, 384 dimensões) e índices vetoriais nativos do Neo4j.
+**Semantic search** — search by meaning (not just keywords) using embeddings (`sentence-transformers`, 384 dimensions) and Neo4j's native vector indexes.
 
-**Análise de impacto** — travessia do grafo a partir de um artefato pra visualizar tudo que seria afetado por uma mudança, com profundidade configurável.
+**Impact analysis** — graph traversal starting from an artifact to visualize everything that would be affected by a change, with configurable depth.
 
-**Data Forge** — geração de datasets de QA **por IA**: um LLM inventa Stories, Requirements, TestCases, BugReports, Incidents e PostMortems realistas e já interligados pelas relações corretas do grafo, em lote e em segundos — não é dado aleatório, é conteúdo coerente o suficiente pra alimentar as análises de Quality Intelligence de forma significativa.
+**Data Forge** — AI-generated QA datasets: an LLM invents realistic Stories, Requirements, TestCases, BugReports, Incidents and PostMortems, already interlinked through the correct graph relationships, in batches and in seconds — not random data, but content coherent enough to meaningfully feed the Quality Intelligence analyses.
 
-**Quality Intelligence** — 7 funcionalidades analíticas com interpretação por IA, sempre restrita às evidências coletadas do grafo (sem alucinação de dados fora do contexto):
+**Quality Intelligence** — 7 analytical features with AI interpretation, always constrained to the evidence collected from the graph (no hallucination beyond the provided context):
 
-| Funcionalidade | O que faz |
+| Feature | What it does |
 | :--- | :--- |
-| **Health Score** | Classifica o risco de um artefato (LOW/MEDIUM/HIGH) a partir da vizinhança dele no grafo. |
-| **Quality Hotspots** | Ranqueia as Stories com maior concentração de defeitos no grafo inteiro. |
-| **Test Coverage Analysis** | Calcula um coverage score e identifica Requirements sem TestCase, Stories sem cobertura funcional e TestCases órfãos. |
-| **Knowledge Gaps** | Detecta falhas de rastreabilidade: bugs sem TestCase, incidents sem postmortem, requirements sem story e vice-versa. |
-| **Release Readiness** | Avalia se um conjunto de Stories está pronto pra release (`READY`/`NEEDS_ATTENTION`/`NOT_READY`), com lista de blockers. |
-| **Quality Risk Report** | Combina busca estrutural no grafo com busca semântica por artefatos parecidos com histórico de problemas. |
-| **Recommendations Engine** | Gera recomendações tipadas e priorizadas de ação, sempre com justificativa. |
+| **Health Score** | Classifies the risk of an artifact (LOW/MEDIUM/HIGH) based on its neighborhood in the graph. |
+| **Quality Hotspots** | Ranks the Stories with the highest concentration of defects across the entire graph. |
+| **Test Coverage Analysis** | Computes a coverage score and identifies Requirements without a TestCase, Stories without functional coverage, and orphan TestCases. |
+| **Knowledge Gaps** | Detects traceability failures: bugs without a TestCase, incidents without a postmortem, requirements without a story and vice versa. |
+| **Release Readiness** | Assesses whether a set of Stories is ready for release (`READY`/`NEEDS_ATTENTION`/`NOT_READY`), with a list of blockers. |
+| **Quality Risk Report** | Combines structural graph search with semantic search for similar artifacts with a history of problems. |
+| **Recommendations Engine** | Generates typed, prioritized action recommendations, always with a justification. |
 
 ## Screenshots
 
-> Adicione os prints em `docs/screenshots/` com os nomes de arquivo abaixo — os links já estão prontos, só falta o arquivo existir.
+> Add the screenshots to `docs/screenshots/` using the file names below — the links are already in place, you just need the files to exist.
 
-| Dashboard | Artefatos |
+| Dashboard | Artifacts |
 | :---: | :---: |
-| ![Dashboard](docs/screenshots/dashboard.png) | ![Artefatos](docs/screenshots/artifacts.png) |
+| ![Dashboard](docs/screenshots/dashboard.png) | ![Artifacts](docs/screenshots/artifacts.png) |
 
-| Busca Semântica | Análise de Impacto |
+| Semantic Search | Impact Analysis |
 | :---: | :---: |
-| ![Busca Semântica](docs/screenshots/search.png) | ![Análise de Impacto](docs/screenshots/impact.png) |
+| ![Semantic Search](docs/screenshots/search.png) | ![Impact Analysis](docs/screenshots/impact.png) |
 
-| Explorador de Grafo | Data Forge |
+| Graph Explorer | Data Forge |
 | :---: | :---: |
-| ![Explorador de Grafo](docs/screenshots/graph.png) | ![Data Forge](docs/screenshots/data-forge.png) |
+| ![Graph Explorer](docs/screenshots/graph.png) | ![Data Forge](docs/screenshots/data-forge.png) |
 
-| Quality Intelligence | Usuários |
+| Quality Intelligence | Users |
 | :---: | :---: |
-| ![Quality Intelligence](docs/screenshots/quality-intelligence.png) | ![Usuários](docs/screenshots/users.png) |
+| ![Quality Intelligence](docs/screenshots/quality-intelligence.png) | ![Users](docs/screenshots/users.png) |
 
-## Stack técnica
+## Tech Stack
 
 **Backend**
-- [FastAPI](https://fastapi.tiangolo.com/) — API REST
-- [PostgreSQL](https://www.postgresql.org/) + SQLAlchemy + Alembic — dados relacionais (usuários/autenticação)
-- [Neo4j](https://neo4j.com/) — grafo de artefatos de QA e busca vetorial
+- [FastAPI](https://fastapi.tiangolo.com/) — REST API
+- [PostgreSQL](https://www.postgresql.org/) + SQLAlchemy + Alembic — relational data (users/authentication)
+- [Neo4j](https://neo4j.com/) — QA artifact graph and vector search
 - [sentence-transformers](https://www.sbert.net/) (`all-MiniLM-L6-v2`) — embeddings
-- JWT — autenticação
-- Provedores de IA plugáveis: Gemini, DeepSeek ou Groq (selecionável via `AI_PROVIDER`)
+- JWT — authentication
+- Pluggable AI providers: Gemini, DeepSeek or Groq (selectable via `AI_PROVIDER`)
 
 **Frontend**
-- [TanStack Start](https://tanstack.com/start) (React 19) — SSR + roteamento file-based
-- [TanStack Query](https://tanstack.com/query) — data fetching e cache
+- [TanStack Start](https://tanstack.com/start) (React 19) — SSR + file-based routing
+- [TanStack Query](https://tanstack.com/query) — data fetching and caching
 - [Tailwind CSS 4](https://tailwindcss.com/) + [shadcn/ui](https://ui.shadcn.com/) (Radix) — UI
-- [React Flow](https://reactflow.dev/) — visualização do grafo de impacto
+- [React Flow](https://reactflow.dev/) — impact graph visualization
 
-**Infra**
-- Docker Compose — orquestra backend, frontend, Postgres e Neo4j
-- GitHub Actions — lint (`ruff`), testes (`pytest`) e build das imagens Docker em todo push/PR pra `main`
+**Infrastructure**
+- Docker Compose — orchestrates backend, frontend, Postgres and Neo4j
+- GitHub Actions — lint (`ruff`), tests (`pytest`) and Docker image builds on every push/PR to `main`
 
-## Arquitetura
+## Architecture
 
 ```
 Story ──HAS_REQUIREMENT──▶ Requirement ──COVERED_BY──▶ TestCase ──FOUND──▶ BugReport ──CAUSED──▶ Incident ──ROOT_CAUSE──▶ PostMortem
 ```
 
-Cada artefato é um nó no Neo4j com um `id` (UUID) próprio da aplicação e um embedding de 384 dimensões gerado a partir do seu conteúdo. O módulo `quality_intelligence` do backend combina consultas estruturais nesse grafo com chamadas a um LLM, sempre com instrução estrita de responder só a partir dos dados coletados.
+Each artifact is a node in Neo4j with its own application-level `id` (UUID) and a 384-dimension embedding generated from its content. The backend's `quality_intelligence` module combines structural queries against this graph with calls to an LLM, always instructed to answer strictly from the collected data.
 
-## Como rodar
+## Getting Started
 
-### Via Docker Compose (recomendado)
+### Via Docker Compose (recommended)
 
 ```bash
 cp .env.example .env
-# preencha o .env com as credenciais desejadas
+# fill in .env with the credentials you want to use
 docker-compose up --build
 ```
 
-| Serviço | URL |
+| Service | URL |
 | :--- | :--- |
 | Frontend | http://localhost:3000 |
 | Backend (API) | http://localhost:8000 |
 | Backend (Swagger) | http://localhost:8000/docs |
 | Neo4j Browser | http://localhost:7474 |
 
-### Backend local
+### Backend locally
 
 ```bash
 pip install -r requirements.txt
 uvicorn backend.src.main:app --reload
 ```
 
-> Comandos rodados a partir da raiz do repositório — os imports do backend são baseados em `backend.src.*`.
+> Commands run from the repository root — backend imports are rooted at `backend.src.*`.
 
-### Frontend local
+### Frontend locally
 
 ```bash
 cd frontend
@@ -132,21 +132,21 @@ npm install
 npm run dev
 ```
 
-## Variáveis de ambiente
+## Environment Variables
 
-Copie `.env.example` para `.env` e preencha:
+Copy `.env.example` to `.env` and fill in:
 
-| Variável | Descrição |
+| Variable | Description |
 | :--- | :--- |
-| `ENVIRONMENT`, `APP_NAME`, `APP_VERSION` | Metadados da aplicação |
-| `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` | Credenciais do Postgres |
-| `JWT_SECRET_KEY`, `JWT_ALGORITHM`, `JWT_ACCESS_TOKEN_EXPIRE_MINUTES` | Configuração do JWT |
-| `NEO4J_URI`, `NEO4J_USER`, `NEO4J_PASSWORD` | Conexão com o Neo4j |
-| `GEMINI_API_KEY` / `DEEPSEEK_API_KEY` / `GROQ_API_KEY` | Chave do provedor de IA escolhido |
-| `AI_PROVIDER` | Seletor do provedor ativo (`gemini`, `deepseek` ou `groq`) |
-| `VITE_API_URL` | URL da API usada pelo frontend (opcional — tem fallback automático) |
+| `ENVIRONMENT`, `APP_NAME`, `APP_VERSION` | Application metadata |
+| `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` | Postgres credentials |
+| `JWT_SECRET_KEY`, `JWT_ALGORITHM`, `JWT_ACCESS_TOKEN_EXPIRE_MINUTES` | JWT configuration |
+| `NEO4J_URI`, `NEO4J_USER`, `NEO4J_PASSWORD` | Neo4j connection |
+| `GEMINI_API_KEY` / `DEEPSEEK_API_KEY` / `GROQ_API_KEY` | Key for the chosen AI provider |
+| `AI_PROVIDER` | Active provider selector (`gemini`, `deepseek` or `groq`) |
+| `VITE_API_URL` | API URL used by the frontend (optional — has an automatic fallback) |
 
-## Testes e qualidade
+## Tests and Quality
 
 ```bash
 # Backend
@@ -158,32 +158,32 @@ cd frontend
 npm run lint
 ```
 
-Os testes de backend nunca tocam num banco real: env vars obrigatórias são definidas antes de qualquer import do projeto, `get_db` é substituído por uma sessão SQLite em memória, e `get_neo4j_session` por uma sessão fake.
+Backend tests never touch a real database: required env vars are set before any project import, `get_db` is overridden with an in-memory SQLite session, and `get_neo4j_session` with a fake session.
 
-## Documentação da API
+## API Documentation
 
-Com o backend rodando, a documentação interativa (Swagger UI) fica disponível em `/docs`, e o schema OpenAPI em `/openapi.json`.
+With the backend running, interactive documentation (Swagger UI) is available at `/docs`, and the OpenAPI schema at `/openapi.json`.
 
-## Estrutura do projeto
+## Project Structure
 
 ```
 DefectMind/
 ├── backend/
 │   └── src/
-│       ├── core/            # config, banco de dados, Neo4j, auth, embeddings, provedores de IA
+│       ├── core/            # config, database, Neo4j, auth, embeddings, AI providers
 │       ├── modules/         # auth, users, artifacts, data_forge, search, quality_intelligence
-│       ├── infra/alembic/   # migrações do Postgres
-│       └── tests/           # testes unitários e de integração
+│       ├── infra/alembic/   # Postgres migrations
+│       └── tests/           # unit and integration tests
 ├── frontend/
 │   └── src/
-│       ├── routes/          # rotas file-based (TanStack Router)
-│       ├── components/      # componentes de UI (app-layout, ui/ shadcn)
-│       └── lib/              # cliente de API, i18n, utils
+│       ├── routes/          # file-based routes (TanStack Router)
+│       ├── components/      # UI components (app-layout, ui/ shadcn)
+│       └── lib/              # API client, i18n, utils
 ├── docs/
-│   └── screenshots/          # prints usados neste README
+│   └── screenshots/          # screenshots used in this README
 └── docker-compose.yaml
 ```
 
-## Licença
+## License
 
-Distribuído sob a licença [MIT](LICENSE).
+Distributed under the [MIT](LICENSE) license.
