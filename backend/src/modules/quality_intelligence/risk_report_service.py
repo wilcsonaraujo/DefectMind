@@ -74,14 +74,14 @@ class RiskReportService(QualityIntelligenceBaseService):
         for item in direct_evidence:
             risk_indicator = item["severity"] or item["impact"]
             parts.append(
-                f"[Estrutural] {item['label']} '{item['title']}' "
-                f"(severity: {risk_indicator}) — conectado diretamente ao artefato analisado."
+                f"[Structural] {item['label']} '{item['title']}' "
+                f"(severity: {risk_indicator}) — connected directly to the analyzed artifact."
             )
 
         for item in semantic_evidence:
             parts.append(
-                f"[Semântico] {item['label']} '{item['title']}' "
-                f"(similaridade: {item['score']:.2f}) — encontrado por busca de artefatos parecidos."
+                f"[Semantic] {item['label']} '{item['title']}' "
+                f"(similaridade: {item['score']:.2f}) — found by searching for similar artifacts."
             )
 
         return "\n".join(parts)
@@ -90,15 +90,15 @@ class RiskReportService(QualityIntelligenceBaseService):
         """Build a prompt string from a AI to synthesize a risk report."""
         prompt_parts = [
             f"context: {context}",
-            "Acima está uma lista de evidências de risco para um artefato específico, ",
-            "encontradas de duas formas: [Estrutural] (conexões diretas no grafo com o artefato) ",
-            "e [Semântico] (busca por artefatos com título parecido e histórico de problemas).",
-            "Analise essas evidências e responda estritamente em JSON com:",
-            "- risks (lista de objetos): cada um com 'artifact' (nome/título do artefato citado), ",
-            "'type' (indique se a evidência é 'estrutural' ou 'semântica', citando a fonte), ",
-            "e 'justification' (por que esse artefato representa um risco pro artefato analisado).",
-            "- ai_analysis (texto): um resumo do nível de risco geral do artefato, baseado no conjunto de evidências.",
-            "- recommendations (lista de strings): ações práticas para mitigar os riscos identificados.",
+            "Above is a list of risk evidence for a specific artifact, ",
+            "found in two ways: [Structural] (direct connections in the graph with the artifact) ",
+            "and [Semantic] (search for artifacts with a similar title and history of problems).",
+            "Analyze this evidence and respond strictly in JSON with:",
+            "- risks (list of objects): each with 'artifact' (name/title of the cited artifact), ",
+            "'type' (indicate whether the evidence is 'structural' or 'semantic', citing the source), ",
+            "and 'justification' (why this artifact represents a risk to the artifact being analyzed).",
+            "- ai_analysis (text): a summary of the artifact's overall risk level, based on the set of evidence.",
+            "- recommendations (list of strings): practical actions to mitigate the identified risks.",
         ]
         return "\n".join(prompt_parts)
 

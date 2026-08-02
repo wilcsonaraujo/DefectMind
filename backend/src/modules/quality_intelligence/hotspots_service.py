@@ -75,10 +75,10 @@ class HotspotsService(QualityIntelligenceBaseService):
         """Build a prompt string from a AI return the analysis of hotspots."""
         prompt_parts = [
             f"context: {context}",
-            "Aqui está o ranking de Stories por concentração de defeitos, já ordenado do mais crítico para o menos crítico.",
-            "Identifique padrões recorrentes entre as Stories mais problemáticas e responda estritamente em JSON com:",
-            "ai_analysis (texto): análise dos padrões identificados",
-            "recommendations (lista de strings): recomendações práticas e priorizadas",
+            "Here is the ranking of Stories by defect concentration, already sorted from most critical to least critical.",
+            "Identify recurring patterns among the most problematic Stories and respond strictly in JSON with:",
+            "ai_analysis (text): analysis of the identified patterns",
+            "recommendations (list of strings): practical, prioritized recommendations",
         ]
         return "\n".join(prompt_parts)
 
