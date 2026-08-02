@@ -105,10 +105,10 @@ class ReleaseReadinessService(QualityIntelligenceBaseService):
 
             if coverage_score < 50:
                 blockers.append(
-                    f"cobertura de testes em {coverage_score:.1f}% (mínimo 50%)"
+                    f"test coverage at {coverage_score:.1f}% (minimum 50%)"
                 )
             if health_risk == "HIGH":
-                blockers.append("health score classificado como HIGH")
+                blockers.append("health score classified as HIGH")
 
         elif (
             (50 <= coverage_score < 80)
@@ -119,12 +119,12 @@ class ReleaseReadinessService(QualityIntelligenceBaseService):
 
             if 50 <= coverage_score < 80:
                 blockers.append(
-                    f"cobertura de testes em {coverage_score:.1f}% (ideal > 80%)"
+                    f"test coverage at {coverage_score:.1f}% (goal > 80%)"
                 )
             if health_risk == "MEDIUM":
-                blockers.append("health score classificado como MEDIUM")
+                blockers.append("health score classified as MEDIUM")
             if incidents_count > 0:
-                blockers.append(f"{incidents_count} incidente(s) sem postmortem")
+                blockers.append(f"{incidents_count} incident(s) without post-mortem")
 
         else:
             verdict = "READY"
@@ -172,10 +172,10 @@ class ReleaseReadinessService(QualityIntelligenceBaseService):
         """Build a prompt string from a AI return the analysis of release readiness."""
         prompt_parts = [
             f"context: {context}",
-            "Acima está a avaliação de prontidão de cada Story pra release, com verdict (READY/NEEDS_ATTENTION/NOT_READY), cobertura de testes, risco de saúde (health_risk) e incidents sem postmortem.",
-            "Analise o conjunto e responda estritamente em JSON com:",
-            "- ai_analysis (texto): um resumo do risco geral do lote de Stories, destacando quais estão mais longe de ficar prontas e por quê.",
-            "- recommendations (lista de strings): ações práticas e priorizadas pra destravar as Stories NOT_READY/NEEDS_ATTENTION primeiro.",
+            "Above is the release readiness assessment for each Story, with verdict (READY/NEEDS_ATTENTION/NOT_READY), test coverage, health risk (health_risk), and incidents without postmortem.",
+            "Analyze the set and respond strictly in JSON with:",
+            "- ai_analysis (text): a summary of the overall risk across the batch of Stories, highlighting which ones are furthest from being ready and why.",
+            "- recommendations (list of strings): practical, prioritized actions to unblock the NOT_READY/NEEDS_ATTENTION Stories first.",
         ]
         return "\n".join(prompt_parts)
 

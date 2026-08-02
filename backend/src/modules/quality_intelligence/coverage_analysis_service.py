@@ -111,18 +111,20 @@ class CoverageAnalysisService(QualityIntelligenceBaseService):
 
     def _get_all_gaps_chain(self) -> list[CoverageGap]:
         """Unifies the three lists using itertools.chain."""
-        return list(chain(
-            self._get_uncovered_requirements(),
-            self._get_uncovered_stories(),
-            self._get_orphan_test_cases()
-        ))
+        return list(
+            chain(
+                self._get_uncovered_requirements(),
+                self._get_uncovered_stories(),
+                self._get_orphan_test_cases(),
+            )
+        )
 
     def _build_coverage_context(self, coverages):
         """Build a context string from a list of coverages."""
 
         context_parts = []
         for coverage in coverages:
-            part = (f"[{coverage.label} - {coverage.gap_type}] title: {coverage.title}")
+            part = f"[{coverage.label} - {coverage.gap_type}] title: {coverage.title}"
             context_parts.append(part)
         return "\n---\n".join(context_parts)
 
@@ -130,14 +132,14 @@ class CoverageAnalysisService(QualityIntelligenceBaseService):
         """Build a prompt string from a AI return the analysis of coverages."""
         prompt_parts = [
             f"context: {context}",
-            f"Coverage score atual: {coverage_score}/100 (percentual de Requirements com pelo menos um TestCase vinculado).",
-            "As lacunas acima estão classificadas em três tipos:",
-            "- NO_TEST_CASE: Requirement sem nenhum TestCase vinculado.",
-            "- NO_FUNCTIONAL_COVERAGE: Story cujos Requirements não têm nenhum TestCase.",
-            "- ORPHAN_TEST_CASE: TestCase que não está vinculado a nenhum Requirement.",
-            "Analise essas lacunas e responda estritamente em JSON com:",
-            "- ai_analysis (texto): um resumo interpretando a situação geral de cobertura, destacando as áreas de maior risco e padrões entre as lacunas.",
-            "- recommendations (lista de strings): ações práticas e priorizadas para fechar primeiro as lacunas mais críticas.",
+            f"Current coverage score: {coverage_score}/100 (percentage of Requirements with at least one linked TestCase).",
+            "The gaps above are classified into three types:",
+            "- NO_TEST_CASE: Requirement with no linked TestCase.",
+            "- NO_FUNCTIONAL_COVERAGE: Story whose Requirements have no TestCase at all.",
+            "- ORPHAN_TEST_CASE: TestCase that is not linked to any Requirement.",
+            "Analyze these gaps and respond strictly in JSON with:",
+            "- ai_analysis (text): a summary interpreting the overall coverage situation, highlighting the highest-risk areas and patterns among the gaps.",
+            "- recommendations (list of strings): practical, prioritized actions to close the most critical gaps first.",
         ]
         return "\n".join(prompt_parts)
 

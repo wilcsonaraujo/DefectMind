@@ -131,14 +131,14 @@ class KnowledgeGapsService(QualityIntelligenceBaseService):
         """Build a prompt string from a AI return the analysis of coverages."""
         prompt_parts = [
             f"context: {context}",
-            "As inconsistências acima representam falhas de rastreabilidade no processo de QA, classificadas em quatro tipos:",
-            "- BUG_WITHOUT_TEST_CASE: BugReport que não foi encontrado por nenhum TestCase registrado.",
-            "- INCIDENT_WITHOUT_POSTMORTEM: Incident sem nenhuma análise de causa raiz (PostMortem) associada.",
-            "- REQUIREMENT_WITHOUT_STORY: Requirement que não está vinculado a nenhuma Story.",
-            "- STORY_WITHOUT_REQUIREMENT: Story que ainda não foi detalhada em nenhum Requirement.",
-            "Analise essas inconsistências e responda estritamente em JSON com:",
-            "- ai_analysis (texto): um resumo interpretando os riscos de rastreabilidade e conhecimento perdido, destacando padrões entre as lacunas.",
-            "- recommendations (lista de strings): ações práticas e priorizadas para fechar primeiro as lacunas mais críticas.",
+            "The inconsistencies above represent traceability failures in the QA process, classified into four types:",
+            "- BUG_WITHOUT_TEST_CASE: BugReport that was not caught by any recorded TestCase.",
+            "- INCIDENT_WITHOUT_POSTMORTEM: Incident with no associated root-cause analysis (PostMortem).",
+            "- REQUIREMENT_WITHOUT_STORY: Requirement that is not linked to any Story.",
+            "- STORY_WITHOUT_REQUIREMENT: Story that has not yet been detailed into any Requirement.",
+            "Analyze these inconsistencies and respond strictly in JSON with:",
+            "- ai_analysis (text): a summary interpreting the traceability and lost-knowledge risks, highlighting patterns among the gaps.",
+            "- recommendations (list of strings): practical, prioritized actions to close the most critical gaps first.",
         ]
         return "\n".join(prompt_parts)
 
